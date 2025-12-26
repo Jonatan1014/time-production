@@ -1,0 +1,1 @@
+DROP DATABASE IF EXISTS horas_produccion_db;
