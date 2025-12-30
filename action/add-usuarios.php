@@ -32,6 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'email' => trim($_POST['email']),
             'password' => $_POST['password'],
             'departamento_id' => !empty($_POST['departamento_id']) ? intval($_POST['departamento_id']) : null,
+            'cargo_id' => !empty($_POST['cargo_id']) ? intval($_POST['cargo_id']) : null,
             'fecha_ingreso' => !empty($_POST['fecha_ingreso']) ? $_POST['fecha_ingreso'] : null,
             'valor_hora_base' => isset($_POST['valor_hora_base']) ? floatval($_POST['valor_hora_base']) : 0,
             'rol' => $_POST['rol'],

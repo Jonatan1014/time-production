@@ -123,6 +123,12 @@ foreach ($configuraciones as $config) {
                                                 Configuración General
                                             </a>
                                         </li>
+                                        <li class="nav-item">
+                                            <a href="#festivos" data-bs-toggle="tab" aria-expanded="false" class="nav-link">
+                                                <i class="mdi mdi-calendar-check me-1"></i>
+                                                Días Festivos
+                                            </a>
+                                        </li>
                                     </ul>
 
                                     <div class="tab-content">
@@ -309,12 +315,12 @@ foreach ($configuraciones as $config) {
                                                         <div class="row">
                                                             <div class="col-md-6">
                                                                 <div class="mb-3">
-                                                                    <label class="form-label">Recargo Hora Extra Diurna (%)</label>
+                                                                    <label class="form-label">Factor Hora Extra Diurna</label>
                                                                     <?php
-                                                                    $porcentaje_extra_diurna = '';
+                                                                    $factor_extra_diurna = '';
                                                                     foreach ($configuraciones as $c) {
-                                                                        if ($c['clave'] === 'porcentaje_extra_diurna') {
-                                                                            $porcentaje_extra_diurna = $c['valor'];
+                                                                        if ($c['clave'] === 'factor_extra_diurna') {
+                                                                            $factor_extra_diurna = $c['valor'];
                                                                             echo '<input type="hidden" name="configs[' . $c['id'] . '][id]" value="' . $c['id'] . '">';
                                                                             break;
                                                                         }
@@ -322,22 +328,22 @@ foreach ($configuraciones as $config) {
                                                                     ?>
                                                                     <div class="input-group">
                                                                         <input type="number" class="form-control" 
-                                                                               name="configs_porcentaje_extra_diurna" 
-                                                                               value="<?php echo htmlspecialchars($porcentaje_extra_diurna); ?>"
-                                                                               step="0.1" min="0" max="200" required>
-                                                                        <span class="input-group-text">%</span>
+                                                                               name="configs_factor_extra_diurna" 
+                                                                               value="<?php echo htmlspecialchars($factor_extra_diurna); ?>"
+                                                                               step="0.01" min="1" max="10" required>
+                                                                        <span class="input-group-text">x</span>
                                                                     </div>
-                                                                    <small class="text-muted">Recargo aplicado sobre el valor hora base (ej: 25% = 1.25x)</small>
+                                                                    <small class="text-muted">Factor multiplicador (ej: 1.25 = 1.25x el valor base)</small>
                                                                 </div>
                                                             </div>
                                                             <div class="col-md-6">
                                                                 <div class="mb-3">
-                                                                    <label class="form-label">Recargo Hora Extra Nocturna (%)</label>
+                                                                    <label class="form-label">Factor Hora Extra Nocturna</label>
                                                                     <?php
-                                                                    $porcentaje_extra_nocturna = '';
+                                                                    $factor_extra_nocturna = '';
                                                                     foreach ($configuraciones as $c) {
-                                                                        if ($c['clave'] === 'porcentaje_extra_nocturna') {
-                                                                            $porcentaje_extra_nocturna = $c['valor'];
+                                                                        if ($c['clave'] === 'factor_extra_nocturna') {
+                                                                            $factor_extra_nocturna = $c['valor'];
                                                                             echo '<input type="hidden" name="configs[' . $c['id'] . '][id]" value="' . $c['id'] . '">';
                                                                             break;
                                                                         }
@@ -345,12 +351,110 @@ foreach ($configuraciones as $config) {
                                                                     ?>
                                                                     <div class="input-group">
                                                                         <input type="number" class="form-control" 
-                                                                               name="configs_porcentaje_extra_nocturna" 
-                                                                               value="<?php echo htmlspecialchars($porcentaje_extra_nocturna); ?>"
-                                                                               step="0.1" min="0" max="200" required>
-                                                                        <span class="input-group-text">%</span>
+                                                                               name="configs_factor_extra_nocturna" 
+                                                                               value="<?php echo htmlspecialchars($factor_extra_nocturna); ?>"
+                                                                               step="0.01" min="1" max="10" required>
+                                                                        <span class="input-group-text">x</span>
                                                                     </div>
-                                                                    <small class="text-muted">Recargo aplicado sobre el valor hora base (ej: 75% = 1.75x)</small>
+                                                                    <small class="text-muted">Factor multiplicador (ej: 1.35 = 1.35x el valor base)</small>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="row">
+                                                            <div class="col-md-6">
+                                                                <div class="mb-3">
+                                                                    <label class="form-label">Factor Fin de Semana Diurno</label>
+                                                                    <?php
+                                                                    $factor_fin_semana_diurno = '';
+                                                                    foreach ($configuraciones as $c) {
+                                                                        if ($c['clave'] === 'factor_fin_semana_diurno') {
+                                                                            $factor_fin_semana_diurno = $c['valor'];
+                                                                            echo '<input type="hidden" name="configs[' . $c['id'] . '][id]" value="' . $c['id'] . '">';
+                                                                            break;
+                                                                        }
+                                                                    }
+                                                                    ?>
+                                                                    <div class="input-group">
+                                                                        <input type="number" class="form-control" 
+                                                                               name="configs_factor_fin_semana_diurno" 
+                                                                               value="<?php echo htmlspecialchars($factor_fin_semana_diurno); ?>"
+                                                                               step="0.01" min="1" max="10" required>
+                                                                        <span class="input-group-text">x</span>
+                                                                    </div>
+                                                                    <small class="text-muted">Factor multiplicador (ej: 2.1 = 2.1x el valor base)</small>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <div class="mb-3">
+                                                                    <label class="form-label">Factor Fin de Semana Nocturno</label>
+                                                                    <?php
+                                                                    $factor_fin_semana_nocturno = '';
+                                                                    foreach ($configuraciones as $c) {
+                                                                        if ($c['clave'] === 'factor_fin_semana_nocturno') {
+                                                                            $factor_fin_semana_nocturno = $c['valor'];
+                                                                            echo '<input type="hidden" name="configs[' . $c['id'] . '][id]" value="' . $c['id'] . '">';
+                                                                            break;
+                                                                        }
+                                                                    }
+                                                                    ?>
+                                                                    <div class="input-group">
+                                                                        <input type="number" class="form-control" 
+                                                                               name="configs_factor_fin_semana_nocturno" 
+                                                                               value="<?php echo htmlspecialchars($factor_fin_semana_nocturno); ?>"
+                                                                               step="0.01" min="1" max="10" required>
+                                                                        <span class="input-group-text">x</span>
+                                                                    </div>
+                                                                    <small class="text-muted">Factor multiplicador (ej: 2.5 = 2.5x el valor base)</small>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="row">
+                                                            <div class="col-md-6">
+                                                                <div class="mb-3">
+                                                                    <label class="form-label">Factor Día Festivo Diurno</label>
+                                                                    <?php
+                                                                    $factor_festivo_diurno = '';
+                                                                    foreach ($configuraciones as $c) {
+                                                                        if ($c['clave'] === 'factor_festivo_diurno') {
+                                                                            $factor_festivo_diurno = $c['valor'];
+                                                                            echo '<input type="hidden" name="configs[' . $c['id'] . '][id]" value="' . $c['id'] . '">';
+                                                                            break;
+                                                                        }
+                                                                    }
+                                                                    ?>
+                                                                    <div class="input-group">
+                                                                        <input type="number" class="form-control" 
+                                                                               name="configs_factor_festivo_diurno" 
+                                                                               value="<?php echo htmlspecialchars($factor_festivo_diurno); ?>"
+                                                                               step="0.01" min="1" max="10" required>
+                                                                        <span class="input-group-text">x</span>
+                                                                    </div>
+                                                                    <small class="text-muted">Factor multiplicador (ej: 2.1 = 2.1x el valor base)</small>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <div class="mb-3">
+                                                                    <label class="form-label">Factor Día Festivo Nocturno</label>
+                                                                    <?php
+                                                                    $factor_festivo_nocturno = '';
+                                                                    foreach ($configuraciones as $c) {
+                                                                        if ($c['clave'] === 'factor_festivo_nocturno') {
+                                                                            $factor_festivo_nocturno = $c['valor'];
+                                                                            echo '<input type="hidden" name="configs[' . $c['id'] . '][id]" value="' . $c['id'] . '">';
+                                                                            break;
+                                                                        }
+                                                                    }
+                                                                    ?>
+                                                                    <div class="input-group">
+                                                                        <input type="number" class="form-control" 
+                                                                               name="configs_factor_festivo_nocturno" 
+                                                                               value="<?php echo htmlspecialchars($factor_festivo_nocturno); ?>"
+                                                                               step="0.01" min="1" max="10" required>
+                                                                        <span class="input-group-text">x</span>
+                                                                    </div>
+                                                                    <small class="text-muted">Factor multiplicador (ej: 2.5 = 2.5x el valor base)</small>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -359,14 +463,24 @@ foreach ($configuraciones as $config) {
                                                             <div class="card-body">
                                                                 <h6 class="card-title">Ejemplo de Cálculo:</h6>
                                                                 <p class="mb-2"><strong>Valor Hora Base:</strong> $7.500</p>
-                                                                <p class="mb-2">
-                                                                    <strong>Hora Extra Diurna (+<?php echo $porcentaje_extra_diurna; ?>%):</strong> 
-                                                                    $7.500 + <?php echo $porcentaje_extra_diurna; ?>% = $<?php echo number_format(7500 + ($porcentaje_extra_diurna * 7500 / 100), 0, ',', '.'); ?>
-                                                                </p>
-                                                                <p class="mb-0">
-                                                                    <strong>Hora Extra Nocturna (+<?php echo $porcentaje_extra_nocturna; ?>%):</strong> 
-                                                                    $7.500 + <?php echo $porcentaje_extra_nocturna; ?>% = $<?php echo number_format(7500 + ($porcentaje_extra_nocturna * 7500 / 100), 0, ',', '.'); ?>
-                                                                </p>
+                                                                <div class="row">
+                                                                    <div class="col-md-6">
+                                                                        <p class="mb-1"><strong>Hora Extra Diurna (<?php echo floatval($factor_extra_diurna); ?>x):</strong></p>
+                                                                        <p class="mb-1"><strong>Hora Extra Nocturna (<?php echo floatval($factor_extra_nocturna); ?>x):</strong></p>
+                                                                        <p class="mb-1"><strong>Fin de Semana Diurno (<?php echo floatval($factor_fin_semana_diurno); ?>x):</strong></p>
+                                                                        <p class="mb-1"><strong>Fin de Semana Nocturno (<?php echo floatval($factor_fin_semana_nocturno); ?>x):</strong></p>
+                                                                        <p class="mb-1"><strong>Día Festivo Diurno (<?php echo floatval($factor_festivo_diurno); ?>x):</strong></p>
+                                                                        <p class="mb-0"><strong>Día Festivo Nocturno (<?php echo floatval($factor_festivo_nocturno); ?>x):</strong></p>
+                                                                    </div>
+                                                                    <div class="col-md-6">
+                                                                        <p class="mb-1">$<?php echo number_format(7500 * floatval($factor_extra_diurna), 0, ',', '.'); ?></p>
+                                                                        <p class="mb-1">$<?php echo number_format(7500 * floatval($factor_extra_nocturna), 0, ',', '.'); ?></p>
+                                                                        <p class="mb-1">$<?php echo number_format(7500 * floatval($factor_fin_semana_diurno), 0, ',', '.'); ?></p>
+                                                                        <p class="mb-1">$<?php echo number_format(7500 * floatval($factor_fin_semana_nocturno), 0, ',', '.'); ?></p>
+                                                                        <p class="mb-1">$<?php echo number_format(7500 * floatval($factor_festivo_diurno), 0, ',', '.'); ?></p>
+                                                                        <p class="mb-0">$<?php echo number_format(7500 * floatval($factor_festivo_nocturno), 0, ',', '.'); ?></p>
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -506,6 +620,94 @@ foreach ($configuraciones as $config) {
                                                     </button>
                                                 </div>
                                             </form>
+
+                                            <div class="card mb-3">
+                                                <div class="card-body">
+                                                    <h5 class="card-title text-primary mb-3">
+                                                        <i class="mdi mdi-calendar-star me-1"></i>
+                                                        API de Días Festivos
+                                                    </h5>
+
+                                                    <div class="alert alert-info">
+                                                        <i class="mdi mdi-information me-2"></i>
+                                                        Configure la conexión a la API de días festivos para calcular automáticamente los recargos en días festivos.
+                                                    </div>
+
+                                                    <div class="mb-3">
+                                                        <label class="form-label">País para Días Festivos</label>
+                                                        <?php
+                                                        $festivos_pais = '';
+                                                        foreach ($configuraciones as $c) {
+                                                            if ($c['clave'] === 'festivos_pais') {
+                                                                $festivos_pais = $c['valor'];
+                                                                break;
+                                                            }
+                                                        }
+                                                        ?>
+                                                        <select class="form-select" name="festivos_pais">
+                                                            <option value="">Seleccionar país</option>
+                                                            <option value="CO" <?php echo ($festivos_pais === 'CO') ? 'selected' : ''; ?>>Colombia (CO)</option>
+                                                            <option value="US" <?php echo ($festivos_pais === 'US') ? 'selected' : ''; ?>>Estados Unidos (US)</option>
+                                                            <option value="MX" <?php echo ($festivos_pais === 'MX') ? 'selected' : ''; ?>>México (MX)</option>
+                                                            <option value="AR" <?php echo ($festivos_pais === 'AR') ? 'selected' : ''; ?>>Argentina (AR)</option>
+                                                            <option value="CL" <?php echo ($festivos_pais === 'CL') ? 'selected' : ''; ?>>Chile (CL)</option>
+                                                            <option value="PE" <?php echo ($festivos_pais === 'PE') ? 'selected' : ''; ?>>Perú (PE)</option>
+                                                            <option value="EC" <?php echo ($festivos_pais === 'EC') ? 'selected' : ''; ?>>Ecuador (EC)</option>
+                                                        </select>
+                                                        <small class="text-muted">Código ISO del país para consultar días festivos</small>
+                                                    </div>
+
+                                                    <div class="mb-3">
+                                                        <label class="form-label">URL Base de la API</label>
+                                                        <?php
+                                                        $festivos_url = '';
+                                                        foreach ($configuraciones as $c) {
+                                                            if ($c['clave'] === 'festivos_api_url') {
+                                                                $festivos_url = $c['valor'];
+                                                                break;
+                                                            }
+                                                        }
+                                                        ?>
+                                                        <input type="url" class="form-control" 
+                                                               name="festivos_api_url" 
+                                                               value="<?php echo htmlspecialchars($festivos_url ?: 'https://date.nager.at/api/v3/PublicHolidays'); ?>"
+                                                               placeholder="https://date.nager.at/api/v3/PublicHolidays">
+                                                        <small class="text-muted">URL base de la API de días festivos (Nager.Date)</small>
+                                                    </div>
+
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Habilitar Consulta Automática</label>
+                                                        <?php
+                                                        $festivos_auto = false;
+                                                        foreach ($configuraciones as $c) {
+                                                            if ($c['clave'] === 'festivos_consulta_automatica') {
+                                                                $festivos_auto = ($c['valor'] == '1');
+                                                                break;
+                                                            }
+                                                        }
+                                                        ?>
+                                                        <div class="form-check form-switch">
+                                                            <input type="checkbox" class="form-check-input" 
+                                                                   name="festivos_consulta_automatica" 
+                                                                   value="1"
+                                                                   <?php echo $festivos_auto ? 'checked' : ''; ?>>
+                                                            <label class="form-check-label">Consultar automáticamente días festivos</label>
+                                                        </div>
+                                                        <small class="text-muted">Si está activado, el sistema consultará automáticamente los días festivos para calcular recargos</small>
+                                                    </div>
+
+                                                    <div class="d-flex gap-2">
+                                                        <button type="button" class="btn btn-secondary" id="btnProbarFestivos">
+                                                            <i class="mdi mdi-calendar-check me-1"></i>
+                                                            Probar API de Festivos
+                                                        </button>
+                                                        <button type="button" class="btn btn-info" id="btnVerFestivos">
+                                                            <i class="mdi mdi-calendar-month me-1"></i>
+                                                            Ver Festivos <?php echo date('Y'); ?>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
 
                                         <!-- Configuración General -->
@@ -567,6 +769,62 @@ foreach ($configuraciones as $config) {
                                                     </button>
                                                 </div>
                                             </form>
+                                        </div>
+
+                                        <!-- Días Festivos -->
+                                        <div class="tab-pane" id="festivos">
+                                            <h4 class="header-title mb-3">Días Festivos <?php echo date('Y'); ?></h4>
+
+                                            <div class="alert alert-info">
+                                                <i class="mdi mdi-information me-2"></i>
+                                                Los días festivos se consultan automáticamente desde la API de Nager.Date cada mes y se almacenan en la base de datos para cálculos de costos de horas extras.
+                                                <br><small class="text-muted">Para automatizar la actualización mensual, configure un cron job: <code>0 0 1 * * php /ruta/a/action/actualizar-festivos-mensual.php</code></small>
+                                            </div>
+
+                                            <div class="row mb-3">
+                                                <div class="col-md-6">
+                                                    <button type="button" class="btn btn-primary" id="btnActualizarFestivos">
+                                                        <i class="mdi mdi-refresh me-1"></i>
+                                                        Actualizar Festivos
+                                                    </button>
+                                                    <small class="text-muted d-block mt-1">Consulta y actualiza los festivos del año actual</small>
+                                                </div>
+                                                <div class="col-md-6 text-end">
+                                                    <div class="alert alert-light p-2">
+                                                        <small>
+                                                            <strong>País configurado:</strong>
+                                                            <?php
+                                                            $pais_festivos = '';
+                                                            foreach ($configuraciones as $config) {
+                                                                if ($config['clave'] === 'festivos_pais') {
+                                                                    $pais_festivos = $config['valor'];
+                                                                    break;
+                                                                }
+                                                            }
+                                                            echo htmlspecialchars($pais_festivos ?: 'No configurado');
+                                                            ?>
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="card">
+                                                <div class="card-body">
+                                                    <h5 class="card-title mb-3">
+                                                        <i class="mdi mdi-calendar-multiple me-1"></i>
+                                                        Festivos del Año <?php echo date('Y'); ?>
+                                                    </h5>
+
+                                                    <div id="festivosContainer">
+                                                        <div class="text-center">
+                                                            <div class="spinner-border text-primary" role="status">
+                                                                <span class="visually-hidden">Cargando...</span>
+                                                            </div>
+                                                            <p class="mt-2">Cargando festivos...</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -646,6 +904,262 @@ foreach ($configuraciones as $config) {
                     icon: 'error',
                     title: 'Error',
                     text: 'Error al probar la conexión: ' + error.message
+                });
+            });
+        });
+
+        // Probar API de festivos
+        document.getElementById('btnProbarFestivos')?.addEventListener('click', function() {
+            const btn = this;
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="mdi mdi-loading mdi-spin me-1"></i> Probando...';
+
+            const pais = document.querySelector('select[name="festivos_pais"]').value;
+            const anio = new Date().getFullYear();
+
+            fetch('action/probar-festivos.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `pais=${pais}&anio=${anio}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'API Funcionando',
+                        html: `
+                            <p>${data.message}</p>
+                            <small>País: ${pais} | Año: ${anio}</small>
+                        `,
+                        confirmButtonText: 'Excelente'
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error en API',
+                        text: data.message,
+                        confirmButtonText: 'Entendido'
+                    });
+                }
+            })
+            .catch(error => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Error al probar la API: ' + error.message
+                });
+            });
+        });
+
+        // Ver festivos del año
+        document.getElementById('btnVerFestivos')?.addEventListener('click', function() {
+            const btn = this;
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="mdi mdi-loading mdi-spin me-1"></i> Consultando...';
+
+            const pais = document.querySelector('select[name="festivos_pais"]').value;
+            const anio = new Date().getFullYear();
+
+            fetch('action/ver-festivos.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `pais=${pais}&anio=${anio}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+
+                if (data.success) {
+                    let html = `
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Día Festivo</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+
+                    data.festivos.forEach(festivo => {
+                        const fecha = new Date(festivo.fecha + 'T00:00:00').toLocaleDateString('es-ES');
+                        html += `
+                            <tr>
+                                <td>${fecha}</td>
+                                <td>${festivo.nombre}</td>
+                            </tr>
+                        `;
+                    });
+
+                    html += `
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-2">
+                            <small class="text-muted">Fuente: ${data.fuente === 'cache' ? 'Cache local' : 'API externa'}</small>
+                        </div>
+                    `;
+
+                    Swal.fire({
+                        title: `Días Festivos ${anio} - ${pais.toUpperCase()}`,
+                        html: html,
+                        width: '600px',
+                        confirmButtonText: 'Cerrar'
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error al consultar festivos',
+                        text: data.message,
+                        confirmButtonText: 'Entendido'
+                    });
+                }
+            })
+            .catch(error => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Error al consultar festivos: ' + error.message
+                });
+            });
+        });
+    </script>
+
+    <script>
+        // Cargar festivos cuando se activa la pestaña
+        document.querySelector('a[href="#festivos"]').addEventListener('shown.bs.tab', function() {
+            cargarFestivos();
+        });
+
+        // Función para cargar festivos
+        function cargarFestivos() {
+            fetch('action/ver-festivos.php')
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById('festivosContainer');
+
+                    if (data.success) {
+                        if (data.festivos.length === 0) {
+                            container.innerHTML = `
+                                <div class="alert alert-warning">
+                                    <i class="mdi mdi-alert-circle me-2"></i>
+                                    No hay festivos almacenados para este año. Haga clic en "Actualizar Festivos" para consultar desde la API.
+                                </div>
+                            `;
+                        } else {
+                            // Agrupar por mes
+                            const festivosPorMes = {};
+                            data.festivos.forEach(festivo => {
+                                const fecha = new Date(festivo.fecha + 'T00:00:00');
+                                const mes = fecha.getMonth();
+                                if (!festivosPorMes[mes]) {
+                                    festivosPorMes[mes] = [];
+                                }
+                                festivosPorMes[mes].push(festivo);
+                            });
+
+                            let html = '<div class="row">';
+                            const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                                         'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+                            for (let mes = 0; mes < 12; mes++) {
+                                html += `
+                                    <div class="col-md-6 col-lg-4 mb-3">
+                                        <div class="card h-100">
+                                            <div class="card-body">
+                                                <h6 class="card-title text-primary">${meses[mes]}</h6>
+                                                ${festivosPorMes[mes] && festivosPorMes[mes].length > 0 ?
+                                                    '<ul class="list-unstyled mb-0">' +
+                                                    festivosPorMes[mes].map(f => `
+                                                        <li class="mb-1">
+                                                            <small class="text-muted">${new Date(f.fecha + 'T00:00:00').getDate()}</small>
+                                                            <span class="fw-medium">${f.nombre}</span>
+                                                        </li>
+                                                    `).join('') +
+                                                    '</ul>' :
+                                                    '<small class="text-muted">Sin festivos</small>'
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                            html += '</div>';
+                            container.innerHTML = html;
+                        }
+                    } else {
+                        container.innerHTML = `
+                            <div class="alert alert-danger">
+                                <i class="mdi mdi-alert-circle me-2"></i>
+                                Error al cargar festivos: ${data.message}
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('festivosContainer').innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="mdi mdi-alert-circle me-2"></i>
+                            Error de conexión: ${error.message}
+                        </div>
+                    `;
+                });
+        }
+
+        // Botón actualizar festivos
+        document.getElementById('btnActualizarFestivos').addEventListener('click', function() {
+            const btn = this;
+            const originalText = btn.innerHTML;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="mdi mdi-loading mdi-spin me-1"></i>Actualizando...';
+
+            fetch('action/actualizar-festivos-mensual.php', {
+                method: 'POST'
+            })
+            .then(response => response.text())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+
+                if (data.includes('correctamente')) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Éxito',
+                        text: 'Festivos actualizados correctamente'
+                    });
+                    cargarFestivos(); // Recargar la lista
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Error al actualizar festivos: ' + data
+                    });
+                }
+            })
+            .catch(error => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Error de conexión: ' + error.message
                 });
             });
         });

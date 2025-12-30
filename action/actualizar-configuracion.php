@@ -103,8 +103,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $campos_costos = [
                 'configs_hora_diurna_inicio' => 'hora_diurna_inicio',
                 'configs_hora_diurna_fin' => 'hora_diurna_fin',
-                'configs_porcentaje_extra_diurna' => 'porcentaje_extra_diurna',
-                'configs_porcentaje_extra_nocturna' => 'porcentaje_extra_nocturna'
+                'configs_factor_extra_diurna' => 'factor_extra_diurna',
+                'configs_factor_extra_nocturna' => 'factor_extra_nocturna',
+                'configs_factor_fin_semana_diurno' => 'factor_fin_semana_diurno',
+                'configs_factor_fin_semana_nocturno' => 'factor_fin_semana_nocturno',
+                'configs_factor_festivo_diurno' => 'factor_festivo_diurno',
+                'configs_factor_festivo_nocturno' => 'factor_festivo_nocturno'
             ];
             
             foreach ($campos_costos as $campo_post => $clave_config) {
@@ -131,7 +135,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'projectdashboard_habilitado' => isset($_POST['projectdashboard_habilitado']) ? '1' : '0',
                 'projectdashboard_url' => $_POST['projectdashboard_url'] ?? '',
                 'projectdashboard_webhook_token' => $_POST['projectdashboard_webhook_token'] ?? '',
-                'projectdashboard_sincronizacion_automatica' => isset($_POST['projectdashboard_sincronizacion_automatica']) ? '1' : '0'
+                'projectdashboard_sincronizacion_automatica' => isset($_POST['projectdashboard_sincronizacion_automatica']) ? '1' : '0',
+                'festivos_pais' => $_POST['festivos_pais'] ?? '',
+                'festivos_api_url' => $_POST['festivos_api_url'] ?? '',
+                'festivos_consulta_automatica' => isset($_POST['festivos_consulta_automatica']) ? '1' : '0'
             ];
             
             foreach ($campos_integraciones as $clave => $valor) {

@@ -127,6 +127,39 @@ COMMENT 'Indica si el registro ya fue editado (0=no, 1=sí)'
 AFTER estado;
 
 -- =====================================================
+-- TABLA: REGISTROS DE HORAS DE PRODUCCIÓN
+-- Almacena los registros detallados de horas de producción
+-- Incluye diferentes tipos de horas: regulares, extras diurnas, nocturnas, etc.
+-- No requiere validación - se registra directamente
+-- =====================================================
+CREATE TABLE IF NOT EXISTS registros_horas_produccion (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    usuario_id INT NOT NULL,
+    orden_produccion_id INT NOT NULL,
+    fecha DATE NOT NULL,
+    maquina VARCHAR(20) COMMENT 'Código de la máquina utilizada',
+    hr DECIMAL(4,2) DEFAULT 0 COMMENT 'Horas regulares',
+    hed DECIMAL(4,2) DEFAULT 0 COMMENT 'Horas extras diurnas',
+    hen DECIMAL(4,2) DEFAULT 0 COMMENT 'Horas extras nocturnas',
+    hefd DECIMAL(4,2) DEFAULT 0 COMMENT 'Horas extras festivas diurnas',
+    hefn DECIMAL(4,2) DEFAULT 0 COMMENT 'Horas extras festivas nocturnas',
+    permiso VARCHAR(50) COMMENT 'Tipo de permiso si aplica',
+    comida TINYINT(1) DEFAULT 0 COMMENT 'Indicador de comida (1=sí, 0=no)',
+    total_horas DECIMAL(4,2) DEFAULT 0 COMMENT 'Total de horas calculadas',
+    observaciones TEXT,
+    horario VARCHAR(50) DEFAULT '7 am - 5 pm' COMMENT 'Horario de trabajo',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+    FOREIGN KEY (orden_produccion_id) REFERENCES ordenes_produccion(id) ON DELETE CASCADE,
+    INDEX idx_usuario (usuario_id),
+    INDEX idx_fecha (fecha),
+    INDEX idx_orden (orden_produccion_id),
+    INDEX idx_usuario_fecha (usuario_id, fecha),
+    INDEX idx_maquina (maquina)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =====================================================
 -- TABLA: SOLICITUDES DE HORAS EXTRAS
 -- Almacena las solicitudes de horas extras que requieren aprobación
 -- =====================================================
@@ -182,7 +215,7 @@ CREATE TABLE IF NOT EXISTS resumen_diario_horas (
 -- =====================================================
 CREATE TABLE IF NOT EXISTS historial_cambios (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    tipo_registro ENUM('registro_normal', 'hora_extra', 'orden_produccion') NOT NULL,
+    tipo_registro ENUM('registro_normal', 'hora_extra', 'orden_produccion', 'registro_produccion') NOT NULL,
     registro_id INT NOT NULL,
     usuario_id INT NOT NULL,
     accion ENUM('creacion', 'modificacion', 'eliminacion', 'validacion', 'aprobacion', 'rechazo') NOT NULL,
@@ -198,19 +231,60 @@ CREATE TABLE IF NOT EXISTS historial_cambios (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =====================================================
--- TABLA: CONFIGURACIÓN DEL SISTEMA
--- Parámetros configurables del sistema
+-- TABLA: CACHE DE DÍAS FESTIVOS
+-- Almacena los días festivos obtenidos desde la API
 -- =====================================================
-CREATE TABLE IF NOT EXISTS configuracion_sistema (
+CREATE TABLE IF NOT EXISTS festivos_cache (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    clave VARCHAR(100) NOT NULL UNIQUE,
-    valor TEXT NOT NULL,
-    tipo ENUM('texto', 'numero', 'decimal', 'booleano', 'json') DEFAULT 'texto',
-    descripcion TEXT,
-    categoria VARCHAR(50) DEFAULT 'general',
+    fecha DATE NOT NULL,
+    nombre VARCHAR(255) NOT NULL,
+    tipo ENUM('festivo', 'puente') DEFAULT 'festivo',
+    pais VARCHAR(5) NOT NULL,
+    anio INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_festivo (pais, anio, fecha),
+    INDEX idx_pais_anio (pais, anio),
+    INDEX idx_fecha (fecha)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- Tabla para registrar sincronizaciones con ProjectDashboard
+CREATE TABLE IF NOT EXISTS sincronizacion_projectdashboard (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    tipo_registro ENUM('horas_normales', 'horas_extras') NOT NULL,
+    registro_id INT NOT NULL COMMENT 'ID del registro en registros_horas o solicitudes_horas_extras',
+    usuario_id INT NOT NULL,
+    orden_produccion_id INT NOT NULL,
+    fecha_registro DATE NOT NULL,
+    horas_ordinarias DECIMAL(4,2) DEFAULT 0,
+    horas_extras DECIMAL(4,2) DEFAULT 0,
+    total_pagado DECIMAL(10,2) DEFAULT 0,
+    fecha_sincronizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    sincronizado_por INT NOT NULL,
+    respuesta_api TEXT COMMENT 'Respuesta del sistema externo si aplica',
+    INDEX idx_tipo_registro (tipo_registro, registro_id),
+    INDEX idx_usuario (usuario_id),
+    INDEX idx_fecha (fecha_registro),
+    INDEX idx_sincronizacion (fecha_sincronizacion),
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+    FOREIGN KEY (orden_produccion_id) REFERENCES ordenes_produccion(id) ON DELETE CASCADE,
+    FOREIGN KEY (sincronizado_por) REFERENCES usuarios(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Índice compuesto único para evitar duplicados
+ALTER TABLE sincronizacion_projectdashboard 
+ADD UNIQUE KEY unique_sincronizacion (tipo_registro, registro_id);
+
+-- Insertar configuración para URL de ProjectDashboard (si existe tabla de configuración)
+INSERT INTO configuracion_sistema (clave, valor, tipo, categoria, descripcion) 
+VALUES 
+    ('projectdashboard_url', '', 'texto', 'integraciones', 'URL webhook del sistema ProjectDashboard'),
+    ('projectdashboard_habilitado', '0', 'booleano', 'integraciones', 'Habilitar sincronización con ProjectDashboard'),
+    ('projectdashboard_webhook_token', '', 'texto', 'integraciones', 'Token de autenticación para webhook'),
+    ('projectdashboard_sincronizacion_automatica', '0', 'booleano', 'integraciones', 'Enviar automáticamente via webhook al aprobar')
+ON DUPLICATE KEY UPDATE 
+    descripcion = VALUES(descripcion);
 
 -- =====================================================
 -- DATOS INICIALES: CONFIGURACIONES DE COSTOS
@@ -218,9 +292,17 @@ CREATE TABLE IF NOT EXISTS configuracion_sistema (
 INSERT INTO configuracion_sistema (clave, valor, tipo, descripcion, categoria) VALUES
 ('hora_diurna_inicio', '06:00', 'texto', 'Hora de inicio del turno diurno (formato HH:MM)', 'costos'),
 ('hora_diurna_fin', '18:00', 'texto', 'Hora de fin del turno diurno (formato HH:MM)', 'costos'),
-('porcentaje_extra_diurna', '25', 'decimal', 'Porcentaje adicional para horas extras diurnas (%)', 'costos'),
-('porcentaje_extra_nocturna', '75', 'decimal', 'Porcentaje adicional para horas extras nocturnas (%)', 'costos'),
-('mostrar_costos', '1', 'booleano', 'Mostrar información de costos en reportes', 'costos')
+('factor_extra_diurna', '1.25', 'decimal', 'Factor multiplicador para horas extras diurnas (HED: 1.25x)', 'costos'),
+('factor_extra_nocturna', '1.35', 'decimal', 'Factor multiplicador para horas extras nocturnas (HEN: 1.35x)', 'costos'),
+('factor_fin_semana_diurno', '2.1', 'decimal', 'Factor multiplicador para horas extras fin de semana diurnas (HEFD: 2.1x)', 'costos'),
+('factor_fin_semana_nocturno', '2.5', 'decimal', 'Factor multiplicador para horas extras fin de semana nocturnas (HEFN: 2.5x)', 'costos'),
+('factor_festivo_diurno', '2.1', 'decimal', 'Factor multiplicador para horas extras días festivos diurnas (HEFD: 2.1x)', 'costos'),
+('factor_festivo_nocturno', '2.5', 'decimal', 'Factor multiplicador para horas extras días festivos nocturnas (HEFN: 2.5x)', 'costos'),
+('recargo_nocturno', '1.35', 'decimal', 'Recargo adicional para horas nocturnas (1.35x)', 'costos'),
+('mostrar_costos', '1', 'booleano', 'Mostrar información de costos en reportes', 'costos'),
+('festivos_pais', 'CO', 'texto', 'Código ISO del país para consultar días festivos', 'integraciones'),
+('festivos_api_url', 'https://date.nager.at/api/v3/PublicHolidays', 'texto', 'URL base de la API de días festivos', 'integraciones'),
+('festivos_consulta_automatica', '1', 'booleano', 'Consultar automáticamente días festivos para calcular recargos', 'integraciones')
 ON DUPLICATE KEY UPDATE valor=VALUES(valor);
 
 -- =====================================================
@@ -335,6 +417,47 @@ BEGIN
             'fecha', NEW.fecha,
             'horas_trabajadas', NEW.horas_trabajadas,
             'descripcion_trabajo', NEW.descripcion_trabajo
+        )
+    );
+END;
+
+-- Trigger: Actualizar resumen diario después de insertar registro de producción
+DELIMITER $$
+CREATE TRIGGER after_registro_horas_produccion_insert 
+AFTER INSERT ON registros_horas_produccion
+FOR EACH ROW
+BEGIN
+    INSERT INTO resumen_diario_horas (usuario_id, fecha, horas_normales, numero_registros)
+    VALUES (NEW.usuario_id, NEW.fecha, NEW.total_horas, 1)
+    ON DUPLICATE KEY UPDATE 
+        horas_normales = horas_normales + NEW.total_horas,
+        numero_registros = numero_registros + 1,
+        total_horas = horas_normales + horas_extras;
+END;
+
+-- Trigger: Registrar historial al crear registro de horas de producción
+DELIMITER $$
+CREATE TRIGGER after_registro_horas_produccion_insert_historial
+AFTER INSERT ON registros_horas_produccion
+FOR EACH ROW
+BEGIN
+    INSERT INTO historial_cambios (tipo_registro, registro_id, usuario_id, accion, datos_nuevos)
+    VALUES (
+        'registro_produccion', 
+        NEW.id, 
+        NEW.usuario_id, 
+        'creacion',
+        JSON_OBJECT(
+            'orden_produccion_id', NEW.orden_produccion_id,
+            'fecha', NEW.fecha,
+            'maquina', NEW.maquina,
+            'hr', NEW.hr,
+            'hed', NEW.hed,
+            'hen', NEW.hen,
+            'hefd', NEW.hefd,
+            'hefn', NEW.hefn,
+            'total_horas', NEW.total_horas,
+            'observaciones', NEW.observaciones
         )
     );
 END;

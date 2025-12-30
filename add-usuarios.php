@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once 'includes/Class-usuario.php';
+require_once 'includes/Class-cargos.php';
 
 // Verificar si el usuario está logueado
 $Usuario_class = new Usuario();
@@ -21,6 +22,10 @@ $roles = $Usuario_class->obtenerRoles();
 
 // Obtener departamentos activos
 $departamentos = $Usuario_class->obtenerDepartamentosActivos();
+
+// Obtener cargos activos
+$Cargos_class = new Cargos();
+$cargos = $Cargos_class->obtenerCargosActivos();
 ?>
 
 <!DOCTYPE html>
@@ -176,6 +181,24 @@ $departamentos = $Usuario_class->obtenerDepartamentosActivos();
                                                     <?php endforeach; ?>
                                                 </select>
                                                 <small class="text-muted">Opcional: Asignar área de trabajo</small>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label for="user-cargo" class="form-label">
+                                                    <i class="mdi mdi-briefcase me-1"></i>Cargo
+                                                </label>
+                                                <select class="form-select" id="user-cargo" name="cargo_id">
+                                                    <option value="">Seleccionar cargo</option>
+                                                    <?php foreach ($cargos as $cargo): ?>
+                                                        <option value="<?php echo $cargo['id']; ?>">
+                                                            <?php echo htmlspecialchars($cargo['nombre']); ?>
+                                                            <?php if (!empty($cargo['codigo'])): ?>
+                                                                (<?php echo htmlspecialchars($cargo['codigo']); ?>)
+                                                            <?php endif; ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                                <small class="text-muted">Opcional: Asignar posición laboral</small>
                                             </div>
 
                                             <div class="mb-3">

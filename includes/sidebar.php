@@ -92,6 +92,17 @@
 
 
 
+            <?php 
+            $es_produccion = ($rol_usuario === 'produccion');
+            if ($es_produccion): ?>
+            <li class="side-nav-item">
+                <a href="registrar-horas-produccion.php" class="side-nav-link">
+                    <i class="ri-edit-line"></i>
+                    <span> Registro de Horas </span>
+                </a>
+            </li>
+            <?php endif; ?>
+
             <?php if ($es_admin): ?>
                 <li class="side-nav-title">Órdenes de Producción</li>
 
