@@ -245,8 +245,12 @@ $cargos = $Cargos_class->obtenerCargosActivos();
                                                 </label>
                                                 <select class="form-select" id="user-rol" name="rol" required>
                                                     <option value="">Seleccionar rol</option>
-                                                    <option value="trabajador" <?php echo (strtolower($datosUser['rol']) == 'trabajador') ? 'selected' : ''; ?>>Trabajador</option>
-                                                    <option value="administrador" <?php echo (strtolower($datosUser['rol']) == 'administrador') ? 'selected' : ''; ?>>Administrador</option>
+                                                    <?php foreach ($roles as $rol): ?>
+                                                        <option value="<?php echo htmlspecialchars($rol['nombre']); ?>" 
+                                                            <?php echo (strtolower($datosUser['rol']) == strtolower($rol['nombre'])) ? 'selected' : ''; ?>>
+                                                            <?php echo htmlspecialchars($rol['nombre']); ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
                                                 </select>
                                             </div>
 

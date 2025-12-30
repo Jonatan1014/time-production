@@ -239,7 +239,8 @@ class Usuario {
         // Roles definidos por el ENUM en la base de datos
         return [
             ['nombre' => 'administrador', 'descripcion' => 'Administrador del sistema'],
-            ['nombre' => 'trabajador', 'descripcion' => 'Trabajador de producción']
+            ['nombre' => 'trabajador', 'descripcion' => 'Trabajador de producción'],
+            ['nombre' => 'produccion', 'descripcion' => 'Supervisor de producción']
         ];
     }
 

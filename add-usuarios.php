@@ -228,8 +228,11 @@ $cargos = $Cargos_class->obtenerCargosActivos();
                                                 </label>
                                                 <select class="form-select" id="user-rol" name="rol" required>
                                                     <option value="">Seleccionar rol</option>
-                                                    <option value="trabajador" selected>Trabajador</option>
-                                                    <option value="administrador">Administrador</option>
+                                                    <?php foreach ($roles as $rol): ?>
+                                                        <option value="<?php echo htmlspecialchars($rol['nombre']); ?>">
+                                                            <?php echo htmlspecialchars($rol['nombre']); ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
                                                 </select>
                                                 <small class="text-muted">Define los permisos del usuario</small>
                                             </div>
