@@ -62,7 +62,7 @@
                                 <div class="text-center mt-3 ps-1 pe-1">
                                     <i class="ri-customer-service-2-line bg-primary maintenance-icon text-white mb-4"></i>
                                     <h5 class="text-uppercase">¿Necesitas Ayuda?</h5>
-                                    <p class="text-muted">Por favor, NO llames a sistemas. Ya están lo suficientemente ocupados tratando de arreglar su propio desastre. Gracias por tu paciencia mientras solucionamos este "pequeño" inconveniente. ☕</p>
+                                    <p class="text-muted">Por favor, NO llames al de sistemas. Ya están lo suficientemente ocupados tratando de arreglar su propio desastre. Gracias por tu paciencia mientras solucionamos este "pequeño" inconveniente. ☕</p>
                                 </div>
                             </div> <!-- end col-->
                         </div> <!-- end row-->
