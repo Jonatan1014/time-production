@@ -28,10 +28,10 @@ if (!class_exists('Database')) {
                 
                 // Redirigir a página de mantenimiento cuando no hay conexión
                 if (!headers_sent()) {
-                    header('Location: /time-production/pages-mantenimiento.php');
+                    header('Location: /pages-mantenimiento.php');
                     exit();
                 } else {
-                    echo '<script>window.location.href="/time-production/pages-mantenimiento.php";</script>';
+                    echo '<script>window.location.href="/pages-mantenimiento.php";</script>';
                     exit();
                 }
             }			
