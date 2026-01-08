@@ -37,8 +37,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $es_laborable = isset($datos['es_laborable']) ? 1 : 0;
                 $hora_inicio_manana = $es_laborable ? ($datos['hora_inicio_manana'] ?? '00:00:00') : '00:00:00';
                 $hora_fin_manana = $es_laborable ? ($datos['hora_fin_manana'] ?? '00:00:00') : '00:00:00';
-                $hora_inicio_tarde = $es_laborable ? ($datos['hora_inicio_tarde'] ?? null) : null;
-                $hora_fin_tarde = $es_laborable ? ($datos['hora_fin_tarde'] ?? null) : null;
+                
+                // Convertir cadenas vacías a NULL para campos de tiempo
+                $hora_inicio_tarde = null;
+                $hora_fin_tarde = null;
+                
+                if ($es_laborable) {
+                    if (!empty($datos['hora_inicio_tarde']) && $datos['hora_inicio_tarde'] !== '') {
+                        $hora_inicio_tarde = $datos['hora_inicio_tarde'];
+                    }
+                    if (!empty($datos['hora_fin_tarde']) && $datos['hora_fin_tarde'] !== '') {
+                        $hora_fin_tarde = $datos['hora_fin_tarde'];
+                    }
+                }
+                
                 $horas_totales = $es_laborable ? ($datos['horas_totales'] ?? 0) : 0;
 
                 $query = "UPDATE horarios_laborales 
@@ -54,8 +66,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->bindParam(':es_laborable', $es_laborable);
                 $stmt->bindParam(':hora_inicio_manana', $hora_inicio_manana);
                 $stmt->bindParam(':hora_fin_manana', $hora_fin_manana);
-                $stmt->bindParam(':hora_inicio_tarde', $hora_inicio_tarde);
-                $stmt->bindParam(':hora_fin_tarde', $hora_fin_tarde);
+                $stmt->bindParam(':hora_inicio_tarde', $hora_inicio_tarde, PDO::PARAM_STR);
+                $stmt->bindParam(':hora_fin_tarde', $hora_fin_tarde, PDO::PARAM_STR);
                 $stmt->bindParam(':horas_totales', $horas_totales);
                 $stmt->bindParam(':id', $id);
                 $stmt->execute();

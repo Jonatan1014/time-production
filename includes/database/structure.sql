@@ -276,6 +276,22 @@ CREATE TABLE IF NOT EXISTS sincronizacion_projectdashboard (
 ALTER TABLE sincronizacion_projectdashboard 
 ADD UNIQUE KEY unique_sincronizacion (tipo_registro, registro_id);
 
+
+-- =====================================================
+-- TABLA: CONFIGURACIÓN DEL SISTEMA
+-- Parámetros configurables del sistema
+-- =====================================================
+CREATE TABLE IF NOT EXISTS configuracion_sistema (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    clave VARCHAR(100) NOT NULL UNIQUE,
+    valor TEXT NOT NULL,
+    tipo ENUM('texto', 'numero', 'decimal', 'booleano', 'json') DEFAULT 'texto',
+    descripcion TEXT,
+    categoria VARCHAR(50) DEFAULT 'general',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Insertar configuración para URL de ProjectDashboard (si existe tabla de configuración)
 INSERT INTO configuracion_sistema (clave, valor, tipo, categoria, descripcion) 
 VALUES 
@@ -288,22 +304,130 @@ ON DUPLICATE KEY UPDATE
 
 -- =====================================================
 -- DATOS INICIALES: CONFIGURACIONES DE COSTOS
+-- Basado en legislación laboral colombiana
 -- =====================================================
 INSERT INTO configuracion_sistema (clave, valor, tipo, descripcion, categoria) VALUES
+-- Horarios de turnos
 ('hora_diurna_inicio', '06:00', 'texto', 'Hora de inicio del turno diurno (formato HH:MM)', 'costos'),
-('hora_diurna_fin', '18:00', 'texto', 'Hora de fin del turno diurno (formato HH:MM)', 'costos'),
-('factor_extra_diurna', '1.25', 'decimal', 'Factor multiplicador para horas extras diurnas (HED: 1.25x)', 'costos'),
-('factor_extra_nocturna', '1.35', 'decimal', 'Factor multiplicador para horas extras nocturnas (HEN: 1.35x)', 'costos'),
-('factor_fin_semana_diurno', '2.1', 'decimal', 'Factor multiplicador para horas extras fin de semana diurnas (HEFD: 2.1x)', 'costos'),
-('factor_fin_semana_nocturno', '2.5', 'decimal', 'Factor multiplicador para horas extras fin de semana nocturnas (HEFN: 2.5x)', 'costos'),
-('factor_festivo_diurno', '2.1', 'decimal', 'Factor multiplicador para horas extras días festivos diurnas (HEFD: 2.1x)', 'costos'),
-('factor_festivo_nocturno', '2.5', 'decimal', 'Factor multiplicador para horas extras días festivos nocturnas (HEFN: 2.5x)', 'costos'),
-('recargo_nocturno', '1.35', 'decimal', 'Recargo adicional para horas nocturnas (1.35x)', 'costos'),
+('hora_diurna_fin', '21:00', 'texto', 'Hora de fin del turno diurno (formato HH:MM)', 'costos'),
+
+-- Horas extras ordinarias (lunes a sábado)
+('factor_extra_diurna', '1.25', 'decimal', 'Hora extra diurna ordinaria (1.25x)', 'costos'),
+('factor_extra_nocturna', '1.75', 'decimal', 'Hora extra nocturna ordinaria (1.75x)', 'costos'),
+
+-- Recargos nocturnos
+('recargo_nocturno_ordinario', '0.35', 'decimal', 'Recargo por hora nocturna ordinaria (0.35x adicional)', 'costos'),
+('recargo_nocturno_dominical', '2.1', 'decimal', 'Recargo nocturno dominical o festivo (2.1x)', 'costos'),
+
+-- Horas extras dominicales y festivas
+('factor_dominical_diurno', '2.0', 'decimal', 'Hora extra diurna dominical o festiva (2.0x)', 'costos'),
+('factor_dominical_nocturno', '2.5', 'decimal', 'Hora extra nocturna dominical o festiva (2.5x)', 'costos'),
+
+-- Trabajo dominical y festivo
+('factor_dominical', '1.75', 'decimal', 'Factor día/hora dominical o festivo (1.75x)', 'costos'),
+
+-- Configuración general de costos
 ('mostrar_costos', '1', 'booleano', 'Mostrar información de costos en reportes', 'costos'),
+
+-- Configuración de festivos
 ('festivos_pais', 'CO', 'texto', 'Código ISO del país para consultar días festivos', 'integraciones'),
 ('festivos_api_url', 'https://date.nager.at/api/v3/PublicHolidays', 'texto', 'URL base de la API de días festivos', 'integraciones'),
 ('festivos_consulta_automatica', '1', 'booleano', 'Consultar automáticamente días festivos para calcular recargos', 'integraciones')
-ON DUPLICATE KEY UPDATE valor=VALUES(valor);
+ON DUPLICATE KEY UPDATE valor=VALUES(valor), descripcion=VALUES(descripcion);
+
+
+
+-- Crear tabla de cargos
+CREATE TABLE IF NOT EXISTS cargos (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    nombre VARCHAR(100) NOT NULL UNIQUE,
+    descripcion TEXT,
+    is_active TINYINT(1) DEFAULT 1 COMMENT '0=inactivo, 1=activo',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_active (is_active),
+    INDEX idx_nombre (nombre)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Agregar columna cargo_id a la tabla usuarios
+ALTER TABLE usuarios
+ADD COLUMN cargo_id INT DEFAULT NULL COMMENT 'ID del cargo del usuario'
+AFTER departamento_id;
+
+-- Agregar foreign key
+ALTER TABLE usuarios
+ADD CONSTRAINT fk_usuario_cargo
+FOREIGN KEY (cargo_id) REFERENCES cargos(id) ON DELETE SET NULL;
+
+-- Insertar cargos básicos
+INSERT INTO cargos (nombre, descripcion) VALUES
+('Dibujante', 'Responsable general de la empresa'),
+('Comercial', 'Responsable del área de producción'),
+('QAQC', 'Supervisor del equipo de producción'),
+('Soldador', 'Trabajador operativo en línea de producción'),
+('Calidad', 'Responsable de control de calidad'),
+('Contadora', 'Personal administrativo'),
+('Ingeniero Mecánico', 'Responsable de logística y distribución'),
+('Jefe de Produccion', 'Personal administrativo'),
+('Mecanico', 'Personal auxiliar')
+ON DUPLICATE KEY UPDATE descripcion = VALUES(descripcion);
+
+
+-- Agregar columna de valor_hora_base a la tabla usuarios
+ALTER TABLE usuarios 
+ADD COLUMN IF NOT EXISTS valor_hora_base DECIMAL(10,2) DEFAULT 0 
+COMMENT 'Valor base por hora del empleado' 
+AFTER departamento_id;
+
+
+
+-- Tabla para registrar sincronizaciones con ProjectDashboard
+CREATE TABLE IF NOT EXISTS sincronizacion_projectdashboard (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    tipo_registro ENUM('horas_normales', 'horas_extras') NOT NULL,
+    registro_id INT NOT NULL COMMENT 'ID del registro en registros_horas o solicitudes_horas_extras',
+    usuario_id INT NOT NULL,
+    orden_produccion_id INT NOT NULL,
+    fecha_registro DATE NOT NULL,
+    horas_ordinarias DECIMAL(4,2) DEFAULT 0,
+    horas_extras DECIMAL(4,2) DEFAULT 0,
+    total_pagado DECIMAL(10,2) DEFAULT 0,
+    fecha_sincronizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    sincronizado_por INT NOT NULL,
+    respuesta_api TEXT COMMENT 'Respuesta del sistema externo si aplica',
+    INDEX idx_tipo_registro (tipo_registro, registro_id),
+    INDEX idx_usuario (usuario_id),
+    INDEX idx_fecha (fecha_registro),
+    INDEX idx_sincronizacion (fecha_sincronizacion),
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+    FOREIGN KEY (orden_produccion_id) REFERENCES ordenes_produccion(id) ON DELETE CASCADE,
+    FOREIGN KEY (sincronizado_por) REFERENCES usuarios(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Índice compuesto único para evitar duplicados
+ALTER TABLE sincronizacion_projectdashboard 
+ADD UNIQUE KEY unique_sincronizacion (tipo_registro, registro_id);
+
+ALTER TABLE sincronizacion_projectdashboard MODIFY COLUMN tipo_registro ENUM('horas_normales', 'horas_extras', 'horas_produccion') NOT NULL;
+
+-- =====================================================
+-- TABLA: CACHE DE DÍAS FESTIVOS
+-- Almacena los días festivos obtenidos desde la API
+-- =====================================================
+CREATE TABLE IF NOT EXISTS festivos_cache (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    fecha DATE NOT NULL,
+    nombre VARCHAR(255) NOT NULL,
+    tipo ENUM('festivo', 'puente') DEFAULT 'festivo',
+    pais VARCHAR(5) NOT NULL,
+    anio INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_festivo (pais, anio, fecha),
+    INDEX idx_pais_anio (pais, anio),
+    INDEX idx_fecha (fecha)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 -- =====================================================
 -- VISTAS ÚTILES

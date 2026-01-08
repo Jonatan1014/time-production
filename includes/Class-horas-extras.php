@@ -240,31 +240,9 @@ class HoraExtra {
             $stmt->bindParam(':comentario', $comentario);
             $stmt->execute();
 
-            // Obtener datos de la solicitud
-            $solicitud = $this->obtenerSolicitudPorId($id);
-            
-            if ($solicitud) {
-                // Crear registro de horas extras en la tabla registros_horas
-                $query_registro = "INSERT INTO registros_horas 
-                                   (usuario_id, orden_produccion_id, fecha, horas_trabajadas, descripcion_trabajo, estado) 
-                                   VALUES (:usuario_id, :orden_produccion_id, :fecha, :horas_trabajadas, :descripcion_trabajo, 'registrado')";
-
-                $stmt_registro = $this->conn->prepare($query_registro);
-                
-                $usuario_id = $solicitud['usuario_id'];
-                $orden_produccion_id = $solicitud['orden_produccion_id'];
-                $fecha = $solicitud['fecha'];
-                $horas_trabajadas = $solicitud['total_horas_extras'];
-                $descripcion_trabajo = $solicitud['descripcion_trabajo'];
-                
-                $stmt_registro->bindParam(':usuario_id', $usuario_id);
-                $stmt_registro->bindParam(':orden_produccion_id', $orden_produccion_id);
-                $stmt_registro->bindParam(':fecha', $fecha);
-                $stmt_registro->bindParam(':horas_trabajadas', $horas_trabajadas);
-                $stmt_registro->bindParam(':descripcion_trabajo', $descripcion_trabajo);
-                
-                $stmt_registro->execute();
-            }
+            // Las horas extras se mantienen en solicitudes_horas_extras
+            // NO se deben duplicar en registros_horas
+            // La sincronización las obtendrá desde solicitudes_horas_extras con estado 'aprobada'
 
             $this->conn->commit();
             return true;

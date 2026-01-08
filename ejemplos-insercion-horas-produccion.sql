@@ -15,7 +15,7 @@ INSERT INTO registros_horas_produccion (
     hr, hed, hen, hefd, hefn,
     permiso, comida, total_horas, observaciones, horario
 ) VALUES (
-    1, -- ID del trabajador
+    3, -- ID del trabajador
     1, -- ID de la orden de producción
     '2025-12-29', -- Fecha del trabajo
     'Ensamblaje de componentes electrónicos y soldadura de circuitos en línea de producción principal', -- Descripción de actividades

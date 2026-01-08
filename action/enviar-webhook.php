@@ -36,22 +36,35 @@ try {
     $Webhook_class = new WebhookProjectDashboard();
     $Sincronizacion_class = new Sincronizacion();
     
+    // Detectar tipo de registros
+    $tipo_registro = $data['tipo'] ?? 'horas_normales';
+    
     // Enviar datos via webhook
-    $resultado_envio = $Webhook_class->enviarDatos($data['registros']);
+    $resultado_envio = $Webhook_class->enviarDatos($data['registros'], $tipo_registro);
     
     if ($resultado_envio['success']) {
-        // Marcar como sincronizado si el envío fue exitoso
-        $resultado_sync = $Sincronizacion_class->marcarComoSincronizado(
-            $data['registros'],
-            $_SESSION['user_id'],
-            'Enviado via webhook - HTTP ' . $resultado_envio['http_code']
-        );
+        // Marcar como sincronizado según el tipo
+        if ($tipo_registro === 'horas_produccion') {
+            $resultado_sync = $Sincronizacion_class->marcarProduccionComoSincronizada(
+                $data['registros'],
+                $_SESSION['user_id'],
+                'Enviado via webhook - HTTP ' . $resultado_envio['http_code']
+            );
+        } else {
+            $resultado_sync = $Sincronizacion_class->marcarComoSincronizado(
+                $data['registros'],
+                $_SESSION['user_id'],
+                'Enviado via webhook - HTTP ' . $resultado_envio['http_code']
+            );
+        }
         
         echo json_encode([
             'success' => true,
             'message' => 'Datos enviados y marcados como sincronizados',
             'enviados' => $resultado_envio['registros_enviados'],
             'sincronizados' => $resultado_sync['insertados'],
+            'errores_sync' => $resultado_sync['errores'] ?? [],
+            'tipo_registro' => $tipo_registro,
             'http_code' => $resultado_envio['http_code']
         ]);
     } else {

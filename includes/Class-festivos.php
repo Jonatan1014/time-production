@@ -10,6 +10,8 @@ if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
 class Festivos {
     private $conn;
     private $table_name = "festivos_cache";
+    private static $configCache = []; // Cache para configuraciones
+    private static $procesandoAnios = []; // Control anti-recursión
 
     public function __construct() {
         $database = new Database();
@@ -35,7 +37,10 @@ class Festivos {
 
             // Usar Guzzle HTTP si está disponible
             if (class_exists('GuzzleHttp\Client')) {
-                $client = new GuzzleHttp\Client();
+                $client = new GuzzleHttp\Client([
+                    'timeout' => 30, // Timeout de 30 segundos
+                    'connect_timeout' => 10 // Timeout de conexión de 10 segundos
+                ]);
                 $response = $client->request('GET', $url);
 
                 if ($response->getStatusCode() === 200) {
@@ -110,35 +115,54 @@ class Festivos {
      * @param int $anio Año
      */
     public function guardarFestivosCache($festivos, $pais, $anio) {
-        try {
-            // Usar transacción para asegurar atomicidad
-            $this->conn->beginTransaction();
+        $maxRetries = 3;
+        $retryCount = 0;
 
-            // Limpiar cache anterior para este país/año
-            $query_delete = "DELETE FROM festivos_cache WHERE pais = :pais AND anio = :anio";
-            $stmt_delete = $this->conn->prepare($query_delete);
-            $stmt_delete->bindParam(':pais', $pais);
-            $stmt_delete->bindParam(':anio', $anio);
-            $stmt_delete->execute();
+        while ($retryCount < $maxRetries) {
+            try {
+                // Usar transacción para asegurar atomicidad
+                $this->conn->beginTransaction();
 
-            // Insertar nuevos festivos usando INSERT IGNORE para evitar duplicados
-            $query_insert = "INSERT IGNORE INTO festivos_cache (fecha, nombre, tipo, pais, anio) VALUES (:fecha, :nombre, :tipo, :pais, :anio)";
-            $stmt_insert = $this->conn->prepare($query_insert);
+                // Limpiar cache anterior para este país/año
+                $query_delete = "DELETE FROM festivos_cache WHERE pais = :pais AND anio = :anio";
+                $stmt_delete = $this->conn->prepare($query_delete);
+                $stmt_delete->bindParam(':pais', $pais);
+                $stmt_delete->bindParam(':anio', $anio);
+                $stmt_delete->execute();
 
-            foreach ($festivos as $festivo) {
-                $stmt_insert->bindParam(':fecha', $festivo['fecha']);
-                $stmt_insert->bindParam(':nombre', $festivo['nombre']);
-                $stmt_insert->bindParam(':tipo', $festivo['tipo']);
-                $stmt_insert->bindParam(':pais', $pais);
-                $stmt_insert->bindParam(':anio', $anio);
-                $stmt_insert->execute();
+                // Insertar nuevos festivos usando INSERT IGNORE para evitar duplicados
+                $query_insert = "INSERT IGNORE INTO festivos_cache (fecha, nombre, tipo, pais, anio) VALUES (:fecha, :nombre, :tipo, :pais, :anio)";
+                $stmt_insert = $this->conn->prepare($query_insert);
+
+                foreach ($festivos as $festivo) {
+                    $stmt_insert->bindParam(':fecha', $festivo['fecha']);
+                    $stmt_insert->bindParam(':nombre', $festivo['nombre']);
+                    $stmt_insert->bindParam(':tipo', $festivo['tipo']);
+                    $stmt_insert->bindParam(':pais', $pais);
+                    $stmt_insert->bindParam(':anio', $anio);
+                    $stmt_insert->execute();
+                }
+
+                $this->conn->commit();
+                return; // Éxito, salir
+
+            } catch (Exception $e) {
+                $this->conn->rollBack();
+                
+                // Verificar si es un deadlock (código de error 1213 para MySQL)
+                if (strpos($e->getMessage(), '1213') !== false || strpos($e->getMessage(), 'Deadlock') !== false) {
+                    $retryCount++;
+                    if ($retryCount < $maxRetries) {
+                        // Esperar un poco antes de reintentar (backoff exponencial)
+                        sleep(pow(2, $retryCount));
+                        continue;
+                    }
+                }
+                
+                // Si no es deadlock o se agotaron los reintentos, loggear el error
+                error_log("Error guardando festivos en cache (después de $retryCount reintentos): " . $e->getMessage());
+                break;
             }
-
-            $this->conn->commit();
-
-        } catch (Exception $e) {
-            $this->conn->rollBack();
-            error_log("Error guardando festivos en cache: " . $e->getMessage());
         }
     }
 
@@ -177,6 +201,7 @@ class Festivos {
         }
 
         $anio = date('Y', strtotime($fecha));
+        $cacheKey = $pais . '_' . $anio;
 
         // Verificar en cache primero
         $query = "SELECT COUNT(*) as total FROM festivos_cache
@@ -195,27 +220,40 @@ class Festivos {
         }
 
         // Si no está en cache y la consulta automática está habilitada, consultar API
+        // Usar control anti-recursión para evitar bucles infinitos
         if ($this->obtenerConfiguracion('festivos_consulta_automatica') === '1') {
-            // Verificar nuevamente si otro proceso ya lo agregó mientras esperábamos
-            $query_check = "SELECT COUNT(*) as total FROM festivos_cache
-                           WHERE pais = :pais AND anio = :anio AND fecha = :fecha";
-            $stmt_check = $this->conn->prepare($query_check);
-            $stmt_check->bindParam(':pais', $pais);
-            $stmt_check->bindParam(':anio', $anio);
-            $stmt_check->bindParam(':fecha', $fecha);
-            $stmt_check->execute();
-            $result_check = $stmt_check->fetch(PDO::FETCH_ASSOC);
+            // Verificar si ya estamos procesando este año (anti-recursión)
+            if (isset(self::$procesandoAnios[$cacheKey])) {
+                return false;
+            }
 
-            if ($result_check['total'] == 0) {
-                $festivos = $this->consultarFestivosAPI($pais, $anio);
-                if (!empty($festivos)) {
-                    $this->guardarFestivosCache($festivos, $pais, $anio);
-                    // Verificar nuevamente después de actualizar cache
-                    return $this->esFestivo($fecha, $pais);
+            // Marcar que estamos procesando este año
+            self::$procesandoAnios[$cacheKey] = true;
+
+            try {
+                // Verificar si hay festivos para este año en cache
+                $query_count = "SELECT COUNT(*) as total FROM festivos_cache WHERE pais = :pais AND anio = :anio";
+                $stmt_count = $this->conn->prepare($query_count);
+                $stmt_count->bindParam(':pais', $pais);
+                $stmt_count->bindParam(':anio', $anio);
+                $stmt_count->execute();
+                $result_count = $stmt_count->fetch(PDO::FETCH_ASSOC);
+
+                // Solo consultar API si no hay festivos para este año
+                if ($result_count['total'] == 0) {
+                    $festivos = $this->consultarFestivosAPI($pais, $anio);
+                    if (!empty($festivos)) {
+                        $this->guardarFestivosCache($festivos, $pais, $anio);
+                        
+                        // Verificar nuevamente en cache (sin recursión)
+                        $stmt->execute();
+                        $result_final = $stmt->fetch(PDO::FETCH_ASSOC);
+                        return ($result_final['total'] > 0);
+                    }
                 }
-            } else {
-                // Otro proceso ya lo agregó, verificar nuevamente
-                return ($result_check['total'] > 0);
+            } finally {
+                // Limpiar el flag de procesamiento
+                unset(self::$procesandoAnios[$cacheKey]);
             }
         }
 
@@ -266,13 +304,166 @@ class Festivos {
      * @return string|null Valor de configuración
      */
     public function obtenerConfiguracion($clave) {
-        $query = "SELECT valor FROM configuracion_sistema WHERE clave = :clave";
+        // Verificar cache estático primero
+        if (isset(self::$configCache[$clave])) {
+            return self::$configCache[$clave];
+        }
+
+        try {
+            // Verificar si la tabla existe antes de consultar
+            $query = "SELECT valor FROM configuracion_sistema WHERE clave = :clave LIMIT 1";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':clave', $clave);
+            $stmt->execute();
+
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            $valor = $result ? $result['valor'] : null;
+            
+            // Guardar en cache
+            self::$configCache[$clave] = $valor;
+            
+            return $valor;
+        } catch (PDOException $e) {
+            // Si la tabla no existe, devolver valor por defecto
+            error_log("Error consultando configuración '$clave': " . $e->getMessage());
+            
+            // Valores por defecto para configuraciones críticas de festivos
+            $defaults = [
+                'festivos_pais' => 'CO',
+                'festivos_api_url' => 'https://date.nager.at/api/v3/PublicHolidays',
+                'festivos_consulta_automatica' => '0' // Deshabilitado por defecto si hay error
+            ];
+            
+            return isset($defaults[$clave]) ? $defaults[$clave] : null;
+        }
+    }
+
+    /**
+     * Consultar y guardar festivos para un año específico
+     * @param int $anio Año a consultar
+     * @param string $pais Código del país (opcional, usa configuración si no se especifica)
+     * @param bool $forzar Si es true, actualiza aunque ya existan datos
+     * @return array Resultado de la operación
+     */
+    public function consultarYGuardarFestivos($anio, $pais = null, $forzar = false) {
+        if (!$pais) {
+            $pais = $this->obtenerConfiguracion('festivos_pais');
+        }
+
+        if (!$pais) {
+            return [
+                'success' => false,
+                'mensaje' => 'No se ha configurado el país para festivos',
+                'festivos' => []
+            ];
+        }
+
+        // Validar año
+        $anio = intval($anio);
+        if ($anio < 2000 || $anio > 2100) {
+            return [
+                'success' => false,
+                'mensaje' => 'El año debe estar entre 2000 y 2100',
+                'festivos' => []
+            ];
+        }
+
+        // Verificar si ya existen festivos para este año
+        $query = "SELECT COUNT(*) as total FROM festivos_cache WHERE pais = :pais AND anio = :anio";
         $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':clave', $clave);
+        $stmt->bindParam(':pais', $pais);
+        $stmt->bindParam(':anio', $anio);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($result['total'] > 0 && !$forzar) {
+            // Ya existen festivos, obtenerlos
+            $festivos = $this->obtenerFestivosCache($pais, $anio);
+            return [
+                'success' => true,
+                'mensaje' => "Ya existen {$result['total']} festivos registrados para el año $anio",
+                'festivos' => $festivos,
+                'desde_cache' => true
+            ];
+        }
+
+        // Consultar API
+        $festivos = $this->consultarFestivosAPI($pais, $anio);
+
+        if (empty($festivos)) {
+            return [
+                'success' => false,
+                'mensaje' => "No se pudieron obtener festivos de la API para el año $anio",
+                'festivos' => []
+            ];
+        }
+
+        // Guardar en cache
+        $this->guardarFestivosCache($festivos, $pais, $anio);
+
+        // Obtener los festivos guardados
+        $festivos_guardados = $this->obtenerFestivosCache($pais, $anio);
+
+        return [
+            'success' => true,
+            'mensaje' => "Se registraron " . count($festivos_guardados) . " festivos para el año $anio",
+            'festivos' => $festivos_guardados,
+            'desde_cache' => false
+        ];
+    }
+
+    /**
+     * Obtener años disponibles con festivos en cache
+     * @param string $pais Código del país (opcional)
+     * @return array Array de años
+     */
+    public function obtenerAniosDisponibles($pais = null) {
+        if (!$pais) {
+            $pais = $this->obtenerConfiguracion('festivos_pais');
+        }
+
+        if (!$pais) {
+            return [];
+        }
+
+        $query = "SELECT DISTINCT anio, COUNT(*) as total 
+                  FROM festivos_cache 
+                  WHERE pais = :pais 
+                  GROUP BY anio 
+                  ORDER BY anio DESC";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':pais', $pais);
         $stmt->execute();
 
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $result ? $result['valor'] : null;
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Eliminar festivos de un año específico
+     * @param int $anio Año a eliminar
+     * @param string $pais Código del país (opcional)
+     * @return bool True si se eliminó correctamente
+     */
+    public function eliminarFestivosAnio($anio, $pais = null) {
+        if (!$pais) {
+            $pais = $this->obtenerConfiguracion('festivos_pais');
+        }
+
+        if (!$pais) {
+            return false;
+        }
+
+        try {
+            $query = "DELETE FROM festivos_cache WHERE pais = :pais AND anio = :anio";
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':pais', $pais);
+            $stmt->bindParam(':anio', $anio);
+            return $stmt->execute();
+        } catch (Exception $e) {
+            error_log("Error eliminando festivos: " . $e->getMessage());
+            return false;
+        }
     }
 
     /**

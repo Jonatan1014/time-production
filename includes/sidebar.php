@@ -33,13 +33,7 @@
     <!-- Sidebar -left -->
     <div class="h-100" id="leftside-menu-container" data-simplebar>
         <!-- Leftbar User -->
-        <div class="leftbar-user">
-            <a href="mi-perfil.php">
-                <img src="<?php echo !empty($_SESSION['user_imagen']) ? $_SESSION['user_imagen'] : 'assets/images/users/user-default.png'; ?>"
-                    alt="user" height="42" class="rounded-circle shadow-sm" />
-                <span class="leftbar-user-name mt-2"><?php echo htmlspecialchars($_SESSION['user_nombre'] ?? 'Usuario'); ?></span>
-            </a>
-        </div>
+        
 
         <!--- Sidemenu -->
         <ul class="side-nav">
@@ -93,7 +87,7 @@
 
 
             <?php 
-            $es_produccion = ($rol_usuario === 'produccion');
+            $es_produccion = ($rol_usuario === 'produccion' || $es_admin);
             if ($es_produccion): ?>
             <li class="side-nav-item">
                 <a href="registrar-horas-produccion.php" class="side-nav-link">
@@ -125,6 +119,13 @@
                     <a href="reportes.php" class="side-nav-link">
                         <i class="ri-bar-chart-box-line"></i>
                         <span> Reportes de Productividad </span>
+                    </a>
+                </li>
+
+                <li class="side-nav-item">
+                    <a href="reporte-produccion.php" class="side-nav-link">
+                        <i class="ri-file-chart-line"></i>
+                        <span> Reporte de Producción </span>
                     </a>
                 </li>
 

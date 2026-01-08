@@ -13,9 +13,10 @@ class WebhookProjectDashboard {
     /**
      * Enviar datos a ProjectDashboard via webhook
      * @param array $registros Array de registros a enviar
+     * @param string $tipo_registro Tipo de registro: 'horas_normales' o 'horas_produccion'
      * @return array Resultado del envío
      */
-    public function enviarDatos($registros) {
+    public function enviarDatos($registros, $tipo_registro = 'horas_normales') {
         // Verificar si está habilitado
         $habilitado = $this->config->obtenerValor('projectdashboard_habilitado', false);
         if (!$habilitado) {
@@ -37,37 +38,84 @@ class WebhookProjectDashboard {
         // Obtener token de autenticación
         $token = $this->config->obtenerValor('projectdashboard_webhook_token', '');
 
-        // Preparar datos en formato esperado
+        // Preparar datos según el tipo
         $datos_envio = [];
-        foreach ($registros as $registro) {
-            // Convertir horas a formato decimal con coma (ej: 3,5 para 3 horas y 30 minutos)
-            $tiempo_ordinario_decimal = str_replace('.', ',', number_format($registro['tiempo_ordinario'], 1));
-            $tiempo_extra_decimal = str_replace('.', ',', number_format($registro['tiempo_extra'], 1));
-            // Total pagado sin puntuación: 48806 en vez de 48.806
-            $total_pagado_formateado = number_format($registro['total_pagado'], 0, '', '');
+        
+        if ($tipo_registro === 'horas_produccion') {
+            // Formato para horas de producción
+            foreach ($registros as $registro) {
+                // Calcular horas ordinarias (HR) y horas extras (HED+HEN+HEFD+HEFN)
+                $hr = floatval($registro['hr'] ?? 0);
+                $hed = floatval($registro['hed'] ?? 0);
+                $hen = floatval($registro['hen'] ?? 0);
+                $hefd = floatval($registro['hefd'] ?? 0);
+                $hefn = floatval($registro['hefn'] ?? 0);
+                
+                $tiempo_ordinario = $hr;
+                $tiempo_extra = $hed + $hen + $hefd + $hefn;
+                $total_horas = $tiempo_ordinario + $tiempo_extra;
+                $costo_total = floatval($registro['costo_calculado'] ?? 0);
+                
+                $datos_envio[] = [
+                    'marca_temporal' => date('d/m/Y H:i:s'),
+                    'proyecto_numero' => $registro['proyecto_numero'],
+                    'fecha' => date('d/m/Y', strtotime($registro['fecha'])),
+                    'nombre_empleado' => $registro['nombre_completo'],
+                    'cargo' => $registro['cargo'] ?? 'N/A',
+                    'area_trabajo' => $registro['departamento'] ?? 'N/A',
+                    'tiempo_ordinario' => str_replace('.', ',', number_format($tiempo_ordinario, 1)),
+                    'tiempo_extra' => str_replace('.', ',', number_format($tiempo_extra, 1)),
+                    'total_pagado' => number_format($costo_total, 0, '', ''),
+                    'metadata' => [
+                        'usuario_id' => $registro['usuario_id'],
+                        'orden_produccion_id' => $registro['orden_produccion_id'],
+                        'tipo' => 'horas_produccion',
+                        'registro_produccion_id' => $registro['id'],
+                        'horario' => $registro['horario'] ?? '',
+                        'maquina' => $registro['maquina'] ?? '',
+                        'observaciones' => $registro['observaciones'] ?? '',
+                        'desglose_horas' => [
+                            'hr' => $hr,
+                            'hed' => $hed,
+                            'hen' => $hen,
+                            'hefd' => $hefd,
+                            'hefn' => $hefn
+                        ],
+                        'tiempo_ordinario_numerico' => $tiempo_ordinario,
+                        'tiempo_extra_numerico' => $tiempo_extra,
+                        'total_pagado_numerico' => $costo_total
+                    ]
+                ];
+            }
+        } else {
+            // Formato para horas normales/extras
+            foreach ($registros as $registro) {
+                $tiempo_ordinario_decimal = str_replace('.', ',', number_format($registro['tiempo_ordinario'], 1));
+                $tiempo_extra_decimal = str_replace('.', ',', number_format($registro['tiempo_extra'], 1));
+                $total_pagado_formateado = number_format($registro['total_pagado'], 0, '', '');
 
-            $datos_envio[] = [
-                'marca_temporal' => date('d/m/Y H:i:s'),
-                'proyecto_numero' => $registro['proyecto_numero'],
-                'fecha' => date('d/m/Y', strtotime($registro['fecha'])),
-                'nombre_empleado' => $registro['nombre_empleado'],
-                'cargo' => $registro['cargo'],
-                'area_trabajo' => $registro['area_trabajo'],
-                'tiempo_ordinario' => $tiempo_ordinario_decimal,
-                'tiempo_extra' => $tiempo_extra_decimal,
-                'total_pagado' => $total_pagado_formateado,
-                // Metadata adicional
-                'metadata' => [
-                    'usuario_id' => $registro['usuario_id'],
-                    'orden_produccion_id' => $registro['orden_produccion_id'],
-                    'tipo' => $registro['tipo'],
-                    'tiempo_ordinario_numerico' => $registro['tiempo_ordinario'],
-                    'tiempo_extra_numerico' => $registro['tiempo_extra'],
-                    'total_pagado_numerico' => $registro['total_pagado'],
-                    'detalles_normales_ids' => array_column($registro['detalles_normales'] ?? [], 'id'),
-                    'detalles_extras_ids' => array_column($registro['detalles_extras'] ?? [], 'id')
-                ]
-            ];
+                $datos_envio[] = [
+                    'marca_temporal' => date('d/m/Y H:i:s'),
+                    'proyecto_numero' => $registro['proyecto_numero'],
+                    'fecha' => date('d/m/Y', strtotime($registro['fecha'])),
+                    'nombre_empleado' => $registro['nombre_empleado'],
+                    'cargo' => $registro['cargo'],
+                    'area_trabajo' => $registro['area_trabajo'],
+                    'tiempo_ordinario' => $tiempo_ordinario_decimal,
+                    'tiempo_extra' => $tiempo_extra_decimal,
+                    'total_pagado' => $total_pagado_formateado,
+                    'metadata' => [
+                        'usuario_id' => $registro['usuario_id'],
+                        'orden_produccion_id' => $registro['orden_produccion_id'],
+                        'tipo' => $registro['tipo'],
+                        'tiempo_ordinario_numerico' => $registro['tiempo_ordinario'],
+                        'tiempo_extra_numerico' => $registro['tiempo_extra'],
+                        'total_pagado_numerico' => $registro['total_pagado'],
+                        'detalles_normales_ids' => array_column($registro['detalles_normales'] ?? [], 'id'),
+                        'detalles_extras_ids' => array_column($registro['detalles_extras'] ?? [], 'id')
+                    ]
+                ];
+            }
         }
 
         // Preparar payload

@@ -26,10 +26,13 @@ if (!class_exists('Database')) {
                 // Manejo mejorado de errores
                 error_log("Error de conexión DB: " . $e->getMessage());
                 
-                if (defined('APP_ENV') && APP_ENV === 'development') {
-                    die("Error al conectar a la DB: " . $e->getMessage());
+                // Redirigir a página de mantenimiento cuando no hay conexión
+                if (!headers_sent()) {
+                    header('Location: /time-production/pages-mantenimiento.php');
+                    exit();
                 } else {
-                    die("Error al conectar con la base de datos");
+                    echo '<script>window.location.href="/time-production/pages-mantenimiento.php";</script>';
+                    exit();
                 }
             }			
         }

@@ -11,25 +11,56 @@ $conn = $database->getConnection();
 $Usuario_class = new Usuario();
 $HorasProduccion_class = new HorasProduccion($conn);
 
+// Detectar si es petición AJAX
+$is_ajax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+            strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
+
+// Alternativamente, verificar content-type JSON
+$is_json = (isset($_SERVER['CONTENT_TYPE']) && strpos($_SERVER['CONTENT_TYPE'], 'application/json') !== false);
+
 if (!$Usuario_class->usuarioLogueado()) {
+    if ($is_ajax || $is_json) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => 'No autenticado']);
+        exit;
+    }
     header("Location: ../login.php");
     exit;
 }
 
-$es_produccion = isset($_SESSION['user_rol']) && ($_SESSION['user_rol'] === 'produccion' || $_SESSION['user_rol'] === 'Produccion');
+$es_produccion = isset($_SESSION['user_rol']) && ($_SESSION['user_rol'] === 'produccion' || $_SESSION['user_rol'] === 'Produccion' || 
+                  $_SESSION['user_rol'] === 'administrador' || $_SESSION['user_rol'] === 'Administrador' || $_SESSION['user_rol'] === 'root' || $_SESSION['user_rol'] === 'Root');
 
 if (!$es_produccion) {
+    if ($is_ajax || $is_json) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => 'Sin permisos']);
+        exit;
+    }
     header("Location: ../index.php");
     exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_POST['registros'])) {
+// Obtener datos según el tipo de request
+if ($is_json) {
+    $input = file_get_contents('php://input');
+    $data = json_decode($input, true);
+    $registros_post = $data['registros'] ?? [];
+} else {
+    $registros_post = $_POST['registros'] ?? [];
+}
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST' || empty($registros_post)) {
+    if ($is_ajax || $is_json) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => 'Método no permitido o datos faltantes']);
+        exit;
+    }
     $_SESSION['error'] = 'Método no permitido o datos faltantes.';
     header("Location: ../registrar-horas-produccion.php");
     exit;
 }
 
-$registros_post = $_POST['registros'];
 $registros_procesados = [];
 
 // Obtener IDs de registros existentes antes de procesar
@@ -81,8 +112,11 @@ foreach ($registros_post as $registro) {
         $registro_procesado['id'] = (int)$registro['id'];
     }
 
-    // Solo agregar si tiene datos mínimos
-    if ($registro_procesado['usuario_id'] > 0 && $registro_procesado['orden_produccion_id'] > 0) {
+    // Solo agregar si tiene datos obligatorios: trabajador, OP, fecha y HR > 0
+    if ($registro_procesado['usuario_id'] > 0 && 
+        $registro_procesado['orden_produccion_id'] > 0 && 
+        !empty($registro_procesado['fecha']) &&
+        $registro_procesado['hr'] > 0) {
         $registros_procesados[] = $registro_procesado;
     }
 }
@@ -92,6 +126,11 @@ $ids_enviados = array_filter(array_column($registros_procesados, 'id'));
 $registros_a_eliminar = array_diff($ids_existentes_antes, $ids_enviados);
 
 if (empty($registros_procesados) && empty($registros_a_eliminar)) {
+    if ($is_ajax || $is_json) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => 'No se encontraron registros válidos para guardar o eliminar']);
+        exit;
+    }
     $_SESSION['error'] = 'No se encontraron registros válidos para guardar o eliminar.';
     header("Location: ../registrar-horas-produccion.php");
     exit;
@@ -99,6 +138,7 @@ if (empty($registros_procesados) && empty($registros_a_eliminar)) {
 
 // Procesar eliminaciones primero
 $eliminados = 0;
+$errores = [];
 foreach ($registros_a_eliminar as $id) {
     $resultado = $HorasProduccion_class->eliminarRegistro($id);
     if ($resultado['success']) {
@@ -110,9 +150,9 @@ foreach ($registros_a_eliminar as $id) {
 
 // Procesar cada registro: actualizar si tiene ID, crear si no
 $resultados = [];
-$errores = [];
 $actualizados = 0;
 $creados = 0;
+$registros_guardados = []; // Para devolver en AJAX
 
 foreach ($registros_procesados as $registro) {
     if (isset($registro['id'])) {
@@ -121,6 +161,12 @@ foreach ($registros_procesados as $registro) {
         if ($resultado['success']) {
             $actualizados++;
             $resultados[] = "Registro ID {$registro['id']}: Actualizado";
+            $registros_guardados[] = [
+                'id' => $registro['id'],
+                'fecha' => $registro['fecha'],
+                'trabajador_id' => $registro['usuario_id'],
+                'op' => $registro['orden_produccion_id']
+            ];
         } else {
             $errores[] = "Registro ID {$registro['id']}: " . $resultado['mensaje'];
         }
@@ -130,17 +176,51 @@ foreach ($registros_procesados as $registro) {
         if ($resultado['success']) {
             $creados++;
             $resultados[] = "Nuevo registro: Creado (ID: {$resultado['id']})";
+            $registros_guardados[] = [
+                'id' => $resultado['id'],
+                'fecha' => $registro['fecha'],
+                'trabajador_id' => $registro['usuario_id'],
+                'op' => $registro['orden_produccion_id']
+            ];
         } else {
             $errores[] = "Nuevo registro: " . $resultado['mensaje'];
         }
     }
 }
 
+// Preparar mensaje de respuesta
+$mensaje = '';
+if ($creados > 0) $mensaje .= "Creados: {$creados} ";
+if ($actualizados > 0) $mensaje .= "Actualizados: {$actualizados} ";
+if ($eliminados > 0) $mensaje .= "Eliminados: {$eliminados}";
+
+if ($is_ajax || $is_json) {
+    header('Content-Type: application/json');
+    if (empty($errores)) {
+        echo json_encode([
+            'success' => true,
+            'message' => 'Operación completada exitosamente. ' . trim($mensaje),
+            'creados' => $creados,
+            'actualizados' => $actualizados,
+            'eliminados' => $eliminados,
+            'registros_guardados' => $registros_guardados
+        ]);
+    } else {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Errores encontrados: ' . implode('; ', $errores),
+            'errores' => $errores,
+            'creados' => $creados,
+            'actualizados' => $actualizados,
+            'eliminados' => $eliminados,
+            'registros_guardados' => $registros_guardados
+        ]);
+    }
+    exit;
+}
+
+// Respuesta tradicional (redirect)
 if (empty($errores)) {
-    $mensaje = '';
-    if ($creados > 0) $mensaje .= "Creados: {$creados} ";
-    if ($actualizados > 0) $mensaje .= "Actualizados: {$actualizados} ";
-    if ($eliminados > 0) $mensaje .= "Eliminados: {$eliminados}";
     $_SESSION['success'] = 'Operación completada exitosamente. ' . trim($mensaje);
 } else {
     $_SESSION['error'] = 'Errores encontrados: ' . implode('; ', $errores);
