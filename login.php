@@ -61,7 +61,6 @@
                             </div>
 
                             <?php
-                            session_start();
                             if (isset($_SESSION['error'])) {
                                 echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">
                                         ' . $_SESSION['error'] . '
