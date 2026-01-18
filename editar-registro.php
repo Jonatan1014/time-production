@@ -68,7 +68,7 @@ $ordenes_activas = $OrdenProduccion_class->obtenerOrdenesActivas();
 
 <head>
     <meta charset="utf-8" />
-    <title>Editar Registro | Sistema de Horas</title>
+    <title>Editar Registro | Time Production</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <link rel="shortcut icon" href="assets/images/favicon.ico" />

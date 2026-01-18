@@ -65,8 +65,8 @@ $resumen_estados = $OrdenProduccion_class->obtenerResumenPorEstado();
     <meta charset="utf-8" />
     <title>Dashboard | Time Production</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta content="Sistema de Control de Horas de Producción" name="description" />
-    <meta content="Time Production" name="author" />
+    <meta content="Sistema de gestión de tiempos y producción - Talleres Unidos Ltda" name="description" />
+    <meta content="Talleres Unidos Ltda" name="author" />
 
     <!-- App favicon -->
     <link rel="shortcut icon" href="assets/images/favicon.ico" />
@@ -187,7 +187,7 @@ $resumen_estados = $OrdenProduccion_class->obtenerResumenPorEstado();
                                     </a>
                                     <?php endif; ?>
                                 </div>
-                                <h4 class="page-title">Dashboard - Sistema de Horas de Producción</h4>
+                                <h4 class="page-title">Dashboard - Talleres Unidos Ltda</h4>
                             </div>
                         </div>
                     </div>

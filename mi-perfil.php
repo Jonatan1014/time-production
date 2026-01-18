@@ -24,7 +24,7 @@ if (!$usuario) {
 
 <head>
     <meta charset="utf-8" />
-    <title>Mi Perfil | Sysmaint</title>
+    <title>Mi Perfil | Time Production</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <link rel="shortcut icon" href="assets/images/favicon.ico" />

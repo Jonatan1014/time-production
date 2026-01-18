@@ -3,7 +3,7 @@
     <!-- Brand Logo Light -->
     <a href="index.php" class="logo logo-light mb-4">
         <span class="logo-lg text-white my-3">
-            <h3>TIME PRODUCTION</h3>
+            <h3>Time Production</h3>
         </span>
         <span class="logo-sm text-white ">
             <h3>TP</h3>

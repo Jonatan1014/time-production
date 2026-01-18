@@ -7,8 +7,8 @@
     <meta charset="utf-8" />
     <title>Sistema en Mantenimiento | Time Production</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta content="Sistema de gestión de tiempo y producción en mantenimiento" name="description" />
-    <meta content="Time Production" name="author" />
+    <meta content="Sistema de gestión de tiempos y producción - Talleres Unidos Ltda" name="description" />
+    <meta content="Talleres Unidos Ltda" name="author" />
 
     <!-- App favicon -->
     <link rel="shortcut icon" href="api/assets/images/favicon.ico">
@@ -77,7 +77,7 @@
     <!-- end page -->
 
     <footer class="footer footer-alt">
-        <script>document.write(new Date().getFullYear())</script> © Time Production System - <em>"Siempre funcionando... excepto cuando el de sistemas toca algo"</em> 🛠️
+        <script>document.write(new Date().getFullYear())</script> © Time Production - Talleres Unidos Ltda
     </footer>
     <!-- Vendor js -->
     <script src="api/assets/js/vendor.min.js"></script>

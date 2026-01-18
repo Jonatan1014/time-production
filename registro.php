@@ -13,8 +13,8 @@ $departamentos = $Usuario_class->obtenerDepartamentosActivos();
     <meta charset="utf-8" />
     <title>Registro de Usuario</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta content="Sistema de gestión de horas de producción" name="description" />
-    <meta content="Sysmaint" name="author" />
+    <meta content="Sistema de gestión de tiempos y producción - Talleres Unidos Ltda" name="description" />
+    <meta content="Talleres Unidos Ltda" name="author" />
 
     <!-- App favicon -->
     <link rel="shortcut icon" href="assets/images/favicon.ico">
@@ -50,7 +50,7 @@ $departamentos = $Usuario_class->obtenerDepartamentosActivos();
                         <!-- Logo -->
                         <div class="card-header py-4 text-center bg-primary">
                             <a href="index.php">
-                                <span class="text-white h3">TIME PRODUCTION</span>
+                                <span class="text-white h3">Time Production</span>
                             </a>
                         </div>
 
@@ -216,7 +216,7 @@ $departamentos = $Usuario_class->obtenerDepartamentosActivos();
     <!-- end page -->
 
     <footer class="footer footer-alt">
-        <script>document.write(new Date().getFullYear())</script> © Sysmaint APP
+        <script>document.write(new Date().getFullYear())</script> © Time Production - Talleres Unidos Ltda
     </footer>
 
     <!-- Vendor js -->

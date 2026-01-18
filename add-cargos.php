@@ -25,7 +25,7 @@ $pageTitle = "Agregar Cargo";
 <html lang="es">
 <head>
     <meta charset="utf-8" />
-    <title><?php echo $pageTitle; ?> | Sistema de Horas</title>
+    <title><?php echo $pageTitle; ?> | Time Production</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="shortcut icon" href="assets/images/favicon.ico" />
     <script src="assets/js/hyper-config.js"></script>

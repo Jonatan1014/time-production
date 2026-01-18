@@ -56,7 +56,7 @@ foreach ($usuarios as $usuario) {
 
 <head>
     <meta charset="utf-8" />
-    <title>Costos por Usuario | Sistema de Horas</title>
+    <title>Costos por Usuario | Time Production</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <link rel="shortcut icon" href="assets/images/favicon.ico" />

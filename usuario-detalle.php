@@ -32,8 +32,8 @@ if (!$usuario) {
     <meta charset="utf-8" />
     <title>Detalle Usuario | Time Production</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta content="Sistema de Control de Horas de Producción" name="description" />
-    <meta content="Time Production" name="author" />
+    <meta content="Sistema de gestión de tiempos y producción - Talleres Unidos Ltda" name="description" />
+    <meta content="Talleres Unidos Ltda" name="author" />
 
     <!-- App favicon -->
     <link rel="shortcut icon" href="assets/images/favicon.ico" />

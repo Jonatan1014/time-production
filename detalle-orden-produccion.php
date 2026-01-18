@@ -40,7 +40,7 @@ $registros = $RegistroHoras_class->obtenerRegistrosPorOrden($id_orden);
 
 <head>
     <meta charset="utf-8" />
-    <title>Detalle Orden - <?php echo htmlspecialchars($orden['codigo_op']); ?> | Sistema de Horas</title>
+    <title>Detalle Orden - <?php echo htmlspecialchars($orden['codigo_op']); ?> | Time Production</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <link rel="shortcut icon" href="assets/images/favicon.ico" />

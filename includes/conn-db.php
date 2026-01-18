@@ -1,12 +1,6 @@
 <?php
 require_once ('settings-db.php');
-require_once ('license-config.php');
 
-// ============ VALIDACIÓN DE LICENCIA ============
-// IMPORTANTE: Este sistema valida la licencia antes de permitir
-// la conexión a la base de datos. NO ELIMINAR ni COMENTAR.
-LicenseValidator::validateLicense();
-// ================================================
 
 if (!class_exists('Database')) {
     class Database {	

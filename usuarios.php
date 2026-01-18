@@ -28,7 +28,7 @@ $roles = $Usuario_class->obtenerRoles();
 
 <head>
     <meta charset="utf-8" />
-    <title>Gestión de Usuarios | Sysmaint</title>
+    <title>Gestión de Usuarios | Time Production</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <link rel="shortcut icon" href="assets/images/favicon.ico" />

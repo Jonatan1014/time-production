@@ -33,10 +33,10 @@ $cargos = $Cargos_class->obtenerCargosActivos();
 
 <head>
     <meta charset="utf-8" />
-    <title>Añadir usuarios | Sysmaint</title>
+    <title>Añadir usuarios | Time Production</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta content="A fully featured admin theme which can be used to build CRM, CMS, etc." name="description" />
-    <meta content="Coderthemes" name="author" />
+    <meta content="Sistema de gestión de tiempos y producción - Talleres Unidos Ltda" name="description" />
+    <meta content="Talleres Unidos Ltda" name="author" />
 
     <!-- App favicon -->
     <link rel="shortcut icon" href="assets/images/favicon.ico" />

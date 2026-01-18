@@ -22,7 +22,7 @@ $roles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <html lang="es">
 <head>
     <meta charset="utf-8" />
-    <title>Gestión de Roles | Sysmaint</title>
+    <title>Gestión de Roles | Time Production</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="shortcut icon" href="assets/images/favicon.ico" />
     <script src="assets/js/hyper-config.js"></script>

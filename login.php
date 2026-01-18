@@ -8,10 +8,10 @@
 
 <head>
     <meta charset="utf-8" />
-    <title>Log In | Sysmaint</title>
+    <title>Iniciar Sesión | Time Production</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta content="A fully featured admin theme which can be used to build CRM, CMS, etc." name="description" />
-    <meta content="Coderthemes" name="author" />
+    <meta content="Sistema de gestión de tiempos y producción - Talleres Unidos Ltda" name="description" />
+    <meta content="Talleres Unidos Ltda" name="author" />
 
     <!-- App favicon -->
     <link rel="shortcut icon" href="assets/images/favicon.ico">
@@ -47,7 +47,7 @@
                         <!-- Logo -->
                         <div class="card-header py-4 text-center bg-primary">
                             <a href="index.php">
-                                <span class="text-white">SYSMAINT</span>
+                                <span class="text-white">Time Production</span>
                             </a>
                         </div>
 
@@ -132,7 +132,7 @@
     <footer class="footer footer-alt">
         <script>
         document.write(new Date().getFullYear())
-        </script> © Sysmaint APP
+        </script> © Time Production - Talleres Unidos Ltda
     </footer>
     <!-- Vendor js -->
     <script src="assets/js/vendor.min.js"></script>

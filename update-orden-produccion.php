@@ -43,7 +43,7 @@ if (!$orden) {
 
 <head>
     <meta charset="utf-8" />
-    <title>Editar Orden de Producción | Sistema de Horas</title>
+    <title>Editar Orden de Producción | Time Production</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <link rel="shortcut icon" href="assets/images/favicon.ico" />
