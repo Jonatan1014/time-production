@@ -1,0 +1,287 @@
+{
+  "name": "Time Production Talleres Unidos Ltda",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "time-production",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -368,
+        160
+      ],
+      "id": "74327aa6-fd36-46f2-b5e1-1381d180c6ec",
+      "name": "Webhook",
+      "webhookId": "749d72d1-4e3b-4d5b-a360-686cb04e67d5"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Obtener el array de registros\nconst registros = $input.item.json.body.registros;\n\n// Crear un item separado para cada registro\nreturn registros.map(registro => ({\n  json: {\n    body: {\n      registros: [registro],\n      sistema_origen: $input.item.json.body.sistema_origen,\n      timestamp: $input.item.json.body.timestamp\n    }\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -144,
+        160
+      ],
+      "id": "5bedc481-0ab2-44ca-9e1a-b264c278f377",
+      "name": "Split Registros"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1-cjTBjJpfnYAOWRSHQrHFGEHYZB_XyWPhkgHA2hZ9Cc",
+          "mode": "list",
+          "cachedResultName": "Dashboard de Proyectos",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1-cjTBjJpfnYAOWRSHQrHFGEHYZB_XyWPhkgHA2hZ9Cc/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1997370325,
+          "mode": "list",
+          "cachedResultName": "Mano de Obra",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/15uLVx6rC9E7t346QyzxueColieXYYofgeVDxk3sZm2E/edit#gid=1997370325"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Marca temporal": "={{ $json.body.registros[0].marca_temporal }}",
+            "Proyecto #": "={{ $json.body.registros[0].proyecto_numero }}",
+            "Fecha": "={{ $json.body.registros[0].fecha }}",
+            "Nombre Empleado": "={{ $json.body.registros[0].nombre_empleado }}",
+            "Cargo": "={{ $json.body.registros[0].cargo }}",
+            "Área de Trabajo": "={{ $json.body.registros[0].area_trabajo }}",
+            "Tiempo Ordinario (horas y minutos)": "={{ $json.body.registros[0].tiempo_ordinario }}",
+            "Tiempo Extra (horas y minutos)": "={{ $json.body.registros[0].tiempo_extra }}",
+            "Total pagado ($)": "={{ $json.body.registros[0].total_pagado }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Marca temporal",
+              "displayName": "Marca temporal",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Proyecto #",
+              "displayName": "Proyecto #",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Fecha",
+              "displayName": "Fecha",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Nombre Empleado",
+              "displayName": "Nombre Empleado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Cargo",
+              "displayName": "Cargo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Área de Trabajo",
+              "displayName": "Área de Trabajo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Tiempo Ordinario (horas y minutos)",
+              "displayName": "Tiempo Ordinario (horas y minutos)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Tiempo Extra (horas y minutos)",
+              "displayName": "Tiempo Extra (horas y minutos)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Total pagado ($)",
+              "displayName": "Total pagado ($)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        80,
+        160
+      ],
+      "id": "82154559-8b00-48d6-b446-0fd7ebce03ec",
+      "name": "Registro",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "an5pM3AckRkDezgG",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "n8n.systemautomatic.xyz",
+            "content-length": "1250",
+            "accept": "*/*",
+            "content-type": "application/json",
+            "expect": "100-continue",
+            "x-forwarded-for": "181.119.67.171",
+            "x-forwarded-host": "n8n.systemautomatic.xyz",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "a83b7f6a0310",
+            "x-real-ip": "181.119.67.171",
+            "accept-encoding": "gzip"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "registros": [
+              {
+                "marca_temporal": "13/12/2025 06:28:48",
+                "proyecto_numero": "50013",
+                "fecha": "03/12/2025",
+                "nombre_empleado": "Jesus David Suarez Cadrazco",
+                "cargo": "Calidad",
+                "area_trabajo": "Calidad",
+                "tiempo_ordinario": "3,2",
+                "tiempo_extra": "0,7",
+                "total_pagado": "30056",
+                "metadata": {
+                  "usuario_id": 4,
+                  "orden_produccion_id": 8,
+                  "tipo": "horas_normales",
+                  "tiempo_ordinario_numerico": 3.17,
+                  "tiempo_extra_numerico": 0.67,
+                  "total_pagado_numerico": 30056.25,
+                  "detalles_normales_ids": [
+                    22,
+                    54
+                  ],
+                  "detalles_extras_ids": [
+                    1
+                  ]
+                }
+              },
+              {
+                "marca_temporal": "13/12/2025 06:28:48",
+                "proyecto_numero": "50013",
+                "fecha": "06/12/2025",
+                "nombre_empleado": "Jesus David Suarez Cadrazco",
+                "cargo": "Calidad",
+                "area_trabajo": "Calidad",
+                "tiempo_ordinario": "5,7",
+                "tiempo_extra": "0,7",
+                "total_pagado": "48806",
+                "metadata": {
+                  "usuario_id": 4,
+                  "orden_produccion_id": 8,
+                  "tipo": "horas_normales",
+                  "tiempo_ordinario_numerico": 5.67,
+                  "tiempo_extra_numerico": 0.67,
+                  "total_pagado_numerico": 48806.25,
+                  "detalles_normales_ids": [
+                    134,
+                    139
+                  ],
+                  "detalles_extras_ids": [
+                    2
+                  ]
+                }
+              }
+            ],
+            "sistema_origen": "TIME_PRODUCTION",
+            "timestamp": "2025-12-13T06:28:48+01:00"
+          },
+          "webhookUrl": "https://n8n.systemautomatic.xyz/webhook/time-production",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Split Registros",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Registros": {
+      "main": [
+        [
+          {
+            "node": "Registro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "5eb4b05d-8e9d-4e3c-995e-b74d0394aa54",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a04deabc733411aeec3618b1a0ffc8244745c9170498667bc81e20e2872dfe43"
+  },
+  "id": "vhqOXm6eotxbhAsJ",
+  "tags": []
+}
