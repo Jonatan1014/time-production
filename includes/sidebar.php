@@ -33,7 +33,7 @@
     <!-- Sidebar -left -->
     <div class="h-100" id="leftside-menu-container" data-simplebar>
         <!-- Leftbar User -->
-        
+
 
         <!--- Sidemenu -->
         <ul class="side-nav">
@@ -79,7 +79,8 @@
                         $estadisticas_he = $HoraExtra_class->obtenerEstadisticas();
                         if ($estadisticas_he['pendientes'] > 0):
                     ?>
-                            <span class="badge bg-danger rounded-pill float-end"><?php echo $estadisticas_he['pendientes']; ?></span>
+                    <span
+                        class="badge bg-danger rounded-pill float-end"><?php echo $estadisticas_he['pendientes']; ?></span>
                     <?php endif;
                     endif; ?>
                 </a>
@@ -108,115 +109,117 @@
             <?php 
             $es_produccion = ($rol_usuario === 'produccion' || $es_admin);
             if ($es_produccion): ?>
-            <li class="side-nav-item">
+            <!-- <li class="side-nav-item">
                 <a href="registrar-horas-produccion.php" class="side-nav-link">
                     <i class="ri-edit-line"></i>
                     <span> Registro de Horas </span>
                 </a>
-            </li>
+            </li> -->
             <?php endif; ?>
 
             <?php if ($es_admin): ?>
-                <li class="side-nav-title">Órdenes de Producción</li>
+            <li class="side-nav-title">Órdenes de Producción</li>
 
-                <li class="side-nav-item">
-                    <a href="ordenes-produccion.php" class="side-nav-link">
-                        <i class="ri-file-list-3-line"></i>
-                        <span> Órdenes de Producción </span>
-                    </a>
-                </li>
-                <li class="side-nav-item">
-                    <a href="add-orden-produccion.php" class="side-nav-link">
-                        <i class="ri-file-add-line"></i>
-                        <span> Nueva Orden </span>
-                    </a>
-                </li>
+            <li class="side-nav-item">
+                <a href="ordenes-produccion.php" class="side-nav-link">
+                    <i class="ri-file-list-3-line"></i>
+                    <span> Órdenes de Producción </span>
+                </a>
+            </li>
+            <li class="side-nav-item">
+                <a href="add-orden-produccion.php" class="side-nav-link">
+                    <i class="ri-file-add-line"></i>
+                    <span> Nueva Orden </span>
+                </a>
+            </li>
 
-                <li class="side-nav-title">Reportes</li>
+            <li class="side-nav-title">Reportes</li>
 
-                <li class="side-nav-item">
-                    <a href="reportes.php" class="side-nav-link">
-                        <i class="ri-bar-chart-box-line"></i>
-                        <span> Reportes de Productividad </span>
-                    </a>
-                </li>
+            <li class="side-nav-item">
+                <a href="reportes.php" class="side-nav-link">
+                    <i class="ri-bar-chart-box-line"></i>
+                    <span> Reportes de Productividad </span>
+                </a>
+            </li>
 
-                <li class="side-nav-item">
-                    <a href="reporte-produccion.php" class="side-nav-link">
-                        <i class="ri-file-chart-line"></i>
-                        <span> Reporte de Producción </span>
-                    </a>
-                </li>
+            <li class="side-nav-item">
+                <a href="reporte-produccion.php" class="side-nav-link">
+                    <i class="ri-file-chart-line"></i>
+                    <span> Reporte de Producción </span>
+                </a>
+            </li>
 
-                <li class="side-nav-item">
-                    <a href="reporte-costos-usuarios.php" class="side-nav-link">
-                        <i class="mdi mdi-currency-usd"></i>
-                        <span> Costos por Usuario </span>
-                    </a>
-                </li>
+            <li class="side-nav-item">
+                <a href="reporte-costos-usuarios.php" class="side-nav-link">
+                    <i class="mdi mdi-currency-usd"></i>
+                    <span> Costos por Usuario </span>
+                </a>
+            </li>
 
-                <li class="side-nav-title">Integraciones</li>
+            <li class="side-nav-title">Integraciones</li>
 
-                <li class="side-nav-item">
-                    <a href="sincronizar-projectdashboard.php" class="side-nav-link">
-                        <i class="mdi mdi-cloud-sync"></i>
-                        <span> Sincronizar Horas </span>
-                        <?php 
+            <li class="side-nav-item">
+                <a href="sincronizar-projectdashboard.php" class="side-nav-link">
+                    <i class="mdi mdi-cloud-sync"></i>
+                    <span> Sincronizar Horas </span>
+                    <?php 
                         // Mostrar badge con registros pendientes
                         require_once 'includes/Class-sincronizacion.php';
                         $Sinc_class = new Sincronizacion();
                         $stats_sinc = $Sinc_class->obtenerEstadisticas();
                         if ($stats_sinc['pendientes_total'] > 0):
                         ?>
-                            <span class="badge bg-warning rounded-pill float-end"><?php echo $stats_sinc['pendientes_total']; ?></span>
-                        <?php endif; ?>
-                    </a>
-                </li>
+                    <span
+                        class="badge bg-warning rounded-pill float-end"><?php echo $stats_sinc['pendientes_total']; ?></span>
+                    <?php endif; ?>
+                </a>
+            </li>
 
-                <li class="side-nav-title">Administración</li>
+            <li class="side-nav-title">Administración</li>
 
-                <li class="side-nav-item">
-                    <a data-bs-toggle="collapse" href="#sidebarUsuarios" aria-expanded="false" aria-controls="sidebarUsuarios" class="side-nav-link">
-                        <i class="ri-group-line"></i>
-                        <span> Gestión de Usuarios </span>
-                        <span class="menu-arrow"></span>
-                    </a>
-                    <div class="collapse" id="sidebarUsuarios">
-                        <ul class="side-nav-second-level">
-                            <li>
-                                <a href="usuarios.php">
-                                    <i class="ri-user-line"></i> Listado de Usuarios
-                                </a>
-                            </li>
-                            <li>
-                                <a href="add-usuarios.php">
-                                    <i class="ri-user-add-line"></i> Crear Usuario
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                </li>
+            <li class="side-nav-item">
+                <a data-bs-toggle="collapse" href="#sidebarUsuarios" aria-expanded="false"
+                    aria-controls="sidebarUsuarios" class="side-nav-link">
+                    <i class="ri-group-line"></i>
+                    <span> Gestión de Usuarios </span>
+                    <span class="menu-arrow"></span>
+                </a>
+                <div class="collapse" id="sidebarUsuarios">
+                    <ul class="side-nav-second-level">
+                        <li>
+                            <a href="usuarios.php">
+                                <i class="ri-user-line"></i> Listado de Usuarios
+                            </a>
+                        </li>
+                        <li>
+                            <a href="add-usuarios.php">
+                                <i class="ri-user-add-line"></i> Crear Usuario
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
 
-                <li class="side-nav-item">
-                    <a href="departamentos.php" class="side-nav-link">
-                        <i class="ri-building-line"></i>
-                        <span> Departamentos </span>
-                    </a>
-                </li>
+            <li class="side-nav-item">
+                <a href="departamentos.php" class="side-nav-link">
+                    <i class="ri-building-line"></i>
+                    <span> Departamentos </span>
+                </a>
+            </li>
 
-                <li class="side-nav-item">
-                    <a href="cargos.php" class="side-nav-link">
-                        <i class="mdi mdi-briefcase"></i>
-                        <span> Cargos </span>
-                    </a>
-                </li>
+            <li class="side-nav-item">
+                <a href="cargos.php" class="side-nav-link">
+                    <i class="mdi mdi-briefcase"></i>
+                    <span> Cargos </span>
+                </a>
+            </li>
 
-                <li class="side-nav-item">
-                    <a href="configuracion.php" class="side-nav-link">
-                        <i class="ri-settings-3-line"></i>
-                        <span> Configuración </span>
-                    </a>
-                </li>
+            <li class="side-nav-item">
+                <a href="configuracion.php" class="side-nav-link">
+                    <i class="ri-settings-3-line"></i>
+                    <span> Configuración </span>
+                </a>
+            </li>
             <?php endif; ?>
         </ul>
         <!--- End Sidemenu -->
