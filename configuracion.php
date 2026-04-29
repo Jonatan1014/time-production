@@ -22,6 +22,25 @@
     $database = new Database();
     $conn     = $database->getConnection();
 
+    // Asegurar configuracion base para dotacion
+    $clave_dotacion = 'dotacion_intervalo_meses';
+    $query_dotacion = "SELECT id FROM configuracion_sistema WHERE clave = :clave LIMIT 1";
+    $stmt_dotacion = $conn->prepare($query_dotacion);
+    $stmt_dotacion->bindParam(':clave', $clave_dotacion);
+    $stmt_dotacion->execute();
+
+    if ($stmt_dotacion->rowCount() === 0) {
+        $query_insert = "INSERT INTO configuracion_sistema (clave, valor, tipo, descripcion, categoria) "
+                      . "VALUES (:clave, :valor, 'numero', :descripcion, 'dotacion')";
+        $stmt_insert = $conn->prepare($query_insert);
+        $valor_default = '4';
+        $descripcion = 'Intervalo de entrega de dotacion (meses)';
+        $stmt_insert->bindParam(':clave', $clave_dotacion);
+        $stmt_insert->bindParam(':valor', $valor_default);
+        $stmt_insert->bindParam(':descripcion', $descripcion);
+        $stmt_insert->execute();
+    }
+
     // Obtener horarios laborales
     $query_horarios = "SELECT * FROM horarios_laborales ORDER BY
                    FIELD(dia_semana, 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo')";

@@ -70,6 +70,7 @@
                     <?php 
                     $rol_usuario = strtolower($_SESSION['user_rol'] ?? '');
                     $es_admin = ($rol_usuario === 'administrador' || $rol_usuario === 'root');
+                    $es_dotacion = ($rol_usuario === 'administrador_dotacion' || $es_admin);
                     
                     if ($es_admin):
                         // Mostrar badge con solicitudes pendientes
@@ -83,6 +84,24 @@
                     endif; ?>
                 </a>
             </li>
+
+            <?php if ($es_dotacion): ?>
+            <li class="side-nav-title">Dotacion</li>
+
+            <li class="side-nav-item">
+                <a href="dotaciones.php" class="side-nav-link">
+                    <i class="mdi mdi-clipboard-list-outline"></i>
+                    <span> Entregas de Dotacion </span>
+                </a>
+            </li>
+
+            <li class="side-nav-item">
+                <a href="dotaciones-items.php" class="side-nav-link">
+                    <i class="mdi mdi-package-variant"></i>
+                    <span> Items de Dotacion </span>
+                </a>
+            </li>
+            <?php endif; ?>
 
 
 

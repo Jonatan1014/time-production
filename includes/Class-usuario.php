@@ -240,7 +240,8 @@ class Usuario {
         return [
             ['nombre' => 'administrador', 'descripcion' => 'Administrador del sistema'],
             ['nombre' => 'trabajador', 'descripcion' => 'Trabajador de producción'],
-            ['nombre' => 'produccion', 'descripcion' => 'Supervisor de producción']
+            ['nombre' => 'produccion', 'descripcion' => 'Supervisor de producción'],
+            ['nombre' => 'administrador_dotacion', 'descripcion' => 'Administrador de dotacion']
         ];
     }
 

@@ -248,7 +248,7 @@ $cargos = $Cargos_class->obtenerCargosActivos();
                                                     <?php foreach ($roles as $rol): ?>
                                                         <option value="<?php echo htmlspecialchars($rol['nombre']); ?>" 
                                                             <?php echo (strtolower($datosUser['rol']) == strtolower($rol['nombre'])) ? 'selected' : ''; ?>>
-                                                            <?php echo htmlspecialchars($rol['nombre']); ?>
+                                                            <?php echo htmlspecialchars($rol['descripcion'] ?? $rol['nombre']); ?>
                                                         </option>
                                                     <?php endforeach; ?>
                                                 </select>
